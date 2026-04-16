@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Padelclass</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+  <style>
+    /* Estilos adicionales para el botón + */
+    .admin-fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background-color: #1f2937;
+      color: white;
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      cursor: pointer;
+      z-index: 9999;
+      border: none;
+    }
+    .admin-fab:hover {
+      background-color: #111827;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+
+<div id="app" class="min-h-screen">
+  <!-- Contenido dinámico renderizado por JavaScript -->
+  <div id="loading" class="flex items-center justify-center h-screen">
+    <p class="text-gray-500">Cargando Padelclass...</p>
+  </div>
+</div>
+
+<script>
+  // ---------- CONFIGURACIÓN DE FIREBASE ----------
+  // IMPORTANTE: Reemplaza estos valores con los tuyos o usa variables de entorno en Vercel
+  const firebaseConfig = {
+    apiKey: "AIzaSyD13N4-9MjTrmlPwGP7mves0Exje4v2ACw",
+    authDomain: "kahoot-8529e.firebaseapp.com",
+    databaseURL: "https://kahoot-8529e-default-rtdb.firebaseio.com",
+    projectId: "kahoot-8529e",
+    storageBucket: "kahoot-8529e.firebasestorage.app",
+    messagingSenderId: "313414356056",
+    appId: "1:313414356056:web:4aab4587f7df9393008e2d",
+    measurementId: "G-8T4CPC1BQ3"
+  };
+
+  // Inicializar Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const storage = firebase.storage();
+
+  // ---------- ESTADO GLOBAL ----------
+  let currentUser = null;
+  let currentView = 'login'; // 'login', 'dashboard', 'admin', 'classDetail', 'unitDetail', etc.
+  let selectedClassId = null;
+  let selectedUnitId = null;
+  let userRole = null; // 'profesor', 'alumno', 'monitor'
+
+  // ---------- FUNCIONES DE RENDERIZADO ----------
+  function render() {
+    const app = document.getElementById('app');
+    if (!currentUser) {
+      app.innerHTML = renderLogin();
+    } else {
+      if (currentView === 'admin' && userRole === 'profesor') {
+        app.innerHTML = renderAdminPanel();
+      } else {
+        app.innerHTML = renderMainLayout();
+      }
+    }
+    attachEventListeners();
+  }
+
+  // Pantalla de Login
+  function renderLogin() {
+    return `
+      <div class="min-h-screen flex items-center justify-center bg-gray-100">
+        <div class="bg-white p-8 rounded-lg shadow-md w-96">
+          <h1 class="text-2xl font-bold mb-6 text-center">Padelclass</h1>
+          <form id="login-form">
+            <div class="mb-4">
+              <label class="block text-gray-700">Usuario (email)</label>
+              <input type="email" id="login-email" class="w-full p-2 border rounded" placeholder="tu@email.com" required>
+            </div>
+            <div class="mb-6">
+              <label class="block text-gray-700">Contraseña</label>
+              <input type="password" id="login-password" class="w-full p-2 border rounded" placeholder="••••••••" required>
+            </div>
+            <div id="login-error" class="text-red-500 text-sm mb-4 hidden"></div>
+            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Entrar</button>
+          </form>
+        </div>
+      </div>
+    `;
+  }
+
+  // Layout principal (después de login)
+  function renderMainLayout() {
+    const sidebarClasses = "w-64 bg-gray-800 text-white p-4 flex flex-col";
+    const mainContent = renderCurrentView();
+    return `
+      <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="${sidebarClasses}">
+          <h2 class="text-xl font-bold mb-6">Padelclass</h2>
+          <nav class="flex-1">
+            <a href="#" data-view="dashboard" class="block py-2 px-3 rounded hover:bg-gray-700 mb-1">Dashboard</a>
+            <a href="#" data-view="classes" class="block py-2 px-3 rounded hover:bg-gray-700 mb-1">Clases</a>
+            <a href="#" data-view="ib" class="block py-2 px-3 rounded hover:bg-gray-700 mb-1">IB</a>
+            <a href="#" data-view="resources" class="block py-2 px-3 rounded hover:bg-gray-700 mb-1">Recursos</a>
+            <a href="#" data-view="incidents" class="block py-2 px-3 rounded hover:bg-gray-700 mb-1">Incidencias</a>
+          </nav>
+          <div class="border-t border-gray-700 pt-4">
+            <p class="text-sm">${currentUser.email}</p>
+            <button id="logout-btn" class="mt-2 text-sm text-gray-300 hover:text-white">Cerrar sesión</button>
+          </div>
+        </div>
+        <!-- Contenido principal -->
+        <div class="flex-1 overflow-auto p-6">
+          ${mainContent}
+        </div>
+        <!-- Botón + (admin) -->
+        <button id="admin-fab-btn" class="admin-fab" title="Acceso administrador">+</button>
+      </div>
+    `;
+  }
+
+  // Determina qué vista mostrar dentro del área principal
+  function renderCurrentView() {
+    switch (currentView) {
+      case 'dashboard': return renderDashboard();
+      case 'classes': return renderClassesList();
+      case 'classDetail': return renderClassDetail();
+      case 'ib': return renderIBView();
+      case 'resources': return renderResourcesView();
+      case 'incidents': return renderIncidentsView();
+      default: return renderDashboard();
+    }
+  }
+
+  function renderDashboard() {
+    return `
+      <div>
+        <h1 class="text-3xl font-bold mb-6">Dashboard</h1>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold mb-2">Clases activas</h3>
+            <p class="text-3xl font-bold" id="active-classes-count">0</p>
+          </div>
+          <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold mb-2">Tareas pendientes</h3>
+            <p class="text-3xl font-bold" id="pending-tasks-count">0</p>
+          </div>
+          <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold mb-2">Notificaciones</h3>
+            <p class="text-gray-500">Sin notificaciones nuevas</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderClassesList() {
+    return `
+      <div>
+        <h1 class="text-3xl font-bold mb-6">Mis Clases</h1>
+        <div id="classes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Se llenará dinámicamente -->
+        </div>
+      </div>
+    `;
+  }
+
+  function renderClassDetail() {
+    return `
+      <div>
+        <button id="back-to-classes" class="mb-4 text-blue-600 hover:underline">&larr; Volver a Clases</button>
+        <h1 class="text-3xl font-bold mb-2" id="class-name"></h1>
+        <p class="text-gray-600 mb-6" id="class-description"></p>
+        <div class="flex gap-4 mb-6 border-b">
+          <button data-tab="units" class="tab-btn px-4 py-2 font-medium border-b-2 border-transparent hover:border-blue-500">Unidades</button>
+          <button data-tab="tasks" class="tab-btn px-4 py-2 font-medium border-b-2 border-transparent hover:border-blue-500">Tareas</button>
+          <button data-tab="exams" class="tab-btn px-4 py-2 font-medium border-b-2 border-transparent hover:border-blue-500">Exámenes</button>
+        </div>
+        <div id="class-tab-content">
+          <!-- Contenido dinámico según pestaña -->
+        </div>
+      </div>
+    `;
+  }
+
+  function renderIBView() {
+    return `
+      <div>
+        <h1 class="text-3xl font-bold mb-6">IB - Bachillerato Internacional</h1>
+        <div class="bg-white p-6 rounded-lg shadow">
+          <h2 class="text-xl font-semibold mb-4">Progreso y Calificaciones</h2>
+          <div id="ib-grades-container">
+            <!-- Se llena con datos de Firestore -->
+            <p class="text-gray-500">Cargando calificaciones...</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderResourcesView() {
+    return `
+      <div>
+        <h1 class="text-3xl font-bold mb-6">Recursos</h1>
+        <div class="bg-white p-6 rounded-lg shadow">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">Archivos PDF</h2>
+            ${userRole === 'profesor' ? '<button id="upload-resource-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Subir PDF</button>' : ''}
+          </div>
+          <div id="resources-list" class="space-y-2">
+            <!-- Lista de recursos -->
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderIncidentsView() {
+    return `
+      <div>
+        <h1 class="text-3xl font-bold mb-6">Incidencias</h1>
+        <div class="bg-white p-6 rounded-lg shadow">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">Reportes</h2>
+            <button id="new-incident-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Nueva incidencia</button>
+          </div>
+          <div id="incidents-list">
+            <!-- Lista de incidencias -->
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderAdminPanel() {
+    return `
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-3xl font-bold">Panel de Administración</h1>
+          <button id="close-admin" class="text-gray-600 hover:text-gray-800">&times; Cerrar</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Crear Usuario</h2>
+            <form id="create-user-form">
+              <input type="email" id="new-user-email" placeholder="Email" class="w-full p-2 border rounded mb-2" required>
+              <input type="password" id="new-user-password" placeholder="Contraseña" class="w-full p-2 border rounded mb-2" required>
+              <select id="new-user-role" class="w-full p-2 border rounded mb-2">
+                <option value="alumno">Alumno</option>
+                <option value="profesor">Profesor</option>
+                <option value="monitor">Monitor</option>
+              </select>
+              <button type="submit" class="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">Crear Usuario</button>
+            </form>
+          </div>
+          <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Crear Clase</h2>
+            <form id="create-class-form">
+              <input type="text" id="new-class-name" placeholder="Nombre de la clase" class="w-full p-2 border rounded mb-2" required>
+              <input type="text" id="new-class-school" placeholder="Nombre de la escuela" class="w-full p-2 border rounded mb-2" required>
+              <input type="text" id="new-class-description" placeholder="Descripción" class="w-full p-2 border rounded mb-2">
+              <button type="submit" class="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">Crear Clase</button>
+            </form>
+          </div>
+        </div>
+        <div class="mt-6 bg-white p-6 rounded-lg shadow">
+          <h2 class="text-xl font-semibold mb-4">Usuarios Existentes</h2>
+          <div id="users-list-admin"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ---------- LÓGICA DE EVENTOS Y DATOS ----------
+  async function attachEventListeners() {
+    // Login
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const errorDiv = document.getElementById('login-error');
+        try {
+          await auth.signInWithEmailAndPassword(email, password);
+          // El estado se actualizará mediante onAuthStateChanged
+        } catch (error) {
+          errorDiv.textContent = 'Usuario o contraseña incorrectos.';
+          errorDiv.classList.remove('hidden');
+        }
+      });
+    }
+
+    // Logout
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => auth.signOut());
+    }
+
+    // Navegación del sidebar
+    document.querySelectorAll('[data-view]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const view = link.dataset.view;
+        currentView = view;
+        selectedClassId = null;
+        render();
+      });
+    });
+
+    // Botón admin +
+    const fab = document.getElementById('admin-fab-btn');
+    if (fab) {
+      fab.addEventListener('click', () => {
+        const password = prompt('Contraseña de administrador:');
+        if (password === 'Managebac') {
+          currentView = 'admin';
+          render();
+        } else {
+          alert('Contraseña incorrecta');
+        }
+      });
+    }
+
+    // Cerrar admin
+    const closeAdmin = document.getElementById('close-admin');
+    if (closeAdmin) {
+      closeAdmin.addEventListener('click', () => {
+        currentView = 'dashboard';
+        render();
+      });
+    }
+
+    // Formulario crear clase (admin)
+    const createClassForm = document.getElementById('create-class-form');
+    if (createClassForm) {
+      createClassForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('new-class-name').value;
+        const school = document.getElementById('new-class-school').value;
+        const description = document.getElementById('new-class-description').value;
+        try {
+          await db.collection('classes').add({
+            name,
+            schoolName: school,
+            description,
+            teacherId: currentUser.uid,
+            studentIds: [],
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          alert('Clase creada exitosamente');
+          createClassForm.reset();
+        } catch (error) {
+          alert('Error al crear clase: ' + error.message);
+        }
+      });
+    }
+
+    // Formulario crear usuario (admin)
+    const createUserForm = document.getElementById('create-user-form');
+    if (createUserForm) {
+      createUserForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('new-user-email').value;
+        const password = document.getElementById('new-user-password').value;
+        const role = document.getElementById('new-user-role').value;
+        try {
+          const userCred = await auth.createUserWithEmailAndPassword(email, password);
+          await db.collection('users').doc(userCred.user.uid).set({
+            email,
+            role,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          alert('Usuario creado exitosamente');
+          createUserForm.reset();
+        } catch (error) {
+          alert('Error: ' + error.message);
+        }
+      });
+    }
+
+    // Volver a lista de clases
+    const backBtn = document.getElementById('back-to-classes');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        currentView = 'classes';
+        selectedClassId = null;
+        render();
+      });
+    }
+
+    // Cargar datos según la vista
+    if (currentView === 'classes') {
+      loadClassesList();
+    } else if (currentView === 'classDetail' && selectedClassId) {
+      loadClassDetail();
+    } else if (currentView === 'dashboard') {
+      loadDashboardStats();
+    }
+  }
+
+  async function loadUserRole(uid) {
+    const doc = await db.collection('users').doc(uid).get();
+    if (doc.exists) {
+      userRole = doc.data().role;
+    } else {
+      userRole = 'alumno'; // Por defecto
+    }
+  }
+
+  async function loadDashboardStats() {
+    if (!currentUser) return;
+    // Contar clases donde el usuario es profesor o alumno
+    const classesSnapshot = await db.collection('classes')
+      .where('teacherId', '==', currentUser.uid)
+      .get();
+    const studentClasses = await db.collection('classes')
+      .where('studentIds', 'array-contains', currentUser.uid)
+      .get();
+    const total = classesSnapshot.size + studentClasses.size;
+    document.getElementById('active-classes-count').textContent = total;
+    // Tareas pendientes (simplificado)
+    document.getElementById('pending-tasks-count').textContent = '0';
+  }
+
+  async function loadClassesList() {
+    const container = document.getElementById('classes-container');
+    if (!container) return;
+    container.innerHTML = '<p>Cargando clases...</p>';
+    const teacherQuery = await db.collection('classes').where('teacherId', '==', currentUser.uid).get();
+    const studentQuery = await db.collection('classes').where('studentIds', 'array-contains', currentUser.uid).get();
+    const allClasses = [...teacherQuery.docs, ...studentQuery.docs];
+    if (allClasses.length === 0) {
+      container.innerHTML = '<p class="text-gray-500 col-span-full">No estás inscrito en ninguna clase.</p>';
+      return;
+    }
+    container.innerHTML = allClasses.map(doc => {
+      const data = doc.data();
+      return `
+        <div class="bg-white p-6 rounded-lg shadow cursor-pointer hover:shadow-md" data-class-id="${doc.id}">
+          <h3 class="text-xl font-semibold mb-2">${data.name}</h3>
+          <p class="text-gray-600 mb-1">${data.schoolName || ''}</p>
+          <p class="text-gray-500">${data.description || ''}</p>
+        </div>
+      `;
+    }).join('');
+    container.querySelectorAll('[data-class-id]').forEach(card => {
+      card.addEventListener('click', () => {
+        selectedClassId = card.dataset.classId;
+        currentView = 'classDetail';
+        render();
+      });
+    });
+  }
+
+  async function loadClassDetail() {
+    const doc = await db.collection('classes').doc(selectedClassId).get();
+    if (!doc.exists) return;
+    const data = doc.data();
+    document.getElementById('class-name').textContent = data.name;
+    document.getElementById('class-description').textContent = data.description || '';
+    // Pestañas
+    const tabs = document.querySelectorAll('.tab-btn');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => loadClassTabContent(tab.dataset.tab));
+    });
+    loadClassTabContent('units'); // Por defecto
+  }
+
+  async function loadClassTabContent(tab) {
+    const contentDiv = document.getElementById('class-tab-content');
+    if (!contentDiv) return;
+    if (tab === 'units') {
+      const unitsSnap = await db.collection('units').where('classId', '==', selectedClassId).get();
+      contentDiv.innerHTML = unitsSnap.empty 
+        ? '<p>No hay unidades aún.</p>' 
+        : unitsSnap.docs.map(doc => `<div class="bg-gray-50 p-4 rounded mb-2"><h4 class="font-medium">${doc.data().name}</h4><p class="text-sm">${doc.data().description || ''}</p></div>`).join('');
+      if (userRole === 'profesor') {
+        contentDiv.innerHTML += `<button id="add-unit-btn" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">+ Crear unidad</button>`;
+        document.getElementById('add-unit-btn')?.addEventListener('click', () => alert('Funcionalidad para añadir unidad (implementar formulario)'));
+      }
+    } else if (tab === 'tasks') {
+      const tasksSnap = await db.collection('tasks').where('classId', '==', selectedClassId).get();
+      contentDiv.innerHTML = tasksSnap.empty 
+        ? '<p>No hay tareas.</p>' 
+        : tasksSnap.docs.map(doc => {
+            const t = doc.data();
+            return `<div class="bg-gray-50 p-4 rounded mb-2"><h4 class="font-medium">${t.title}</h4><p>${t.description || ''}</p><p class="text-sm">Entrega: ${t.dueDate ? new Date(t.dueDate.seconds*1000).toLocaleDateString() : 'Sin fecha'}</p><p>Calificación IB: ${t.grade || 'N/A'}</p></div>`;
+          }).join('');
+      if (userRole === 'profesor') {
+        contentDiv.innerHTML += `<button id="add-task-btn" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">+ Crear tarea</button>`;
+      }
+    } else if (tab === 'exams') {
+      const examsSnap = await db.collection('exams').where('classId', '==', selectedClassId).get();
+      contentDiv.innerHTML = examsSnap.empty 
+        ? '<p>No hay exámenes.</p>' 
+        : examsSnap.docs.map(doc => `<div class="bg-gray-50 p-4 rounded mb-2">${doc.data().title}</div>`).join('');
+    }
+  }
+
+  // Observador de autenticación
+  auth.onAuthStateChanged(async (user) => {
+    currentUser = user;
+    if (user) {
+      await loadUserRole(user.uid);
+      currentView = 'dashboard';
+    } else {
+      currentView = 'login';
+      userRole = null;
+    }
+    render();
+  });
+
+  // Render inicial
+  render();
+</script>
+</body>
+</html>
