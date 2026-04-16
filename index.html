@@ -14,7 +14,7 @@
         • Vercel: Go to vercel.com/new → drag & drop this single index.html file → instant live URL.
         
         DEFAULT ADMIN LOGIN: username "Admin" | password "admin123"
-        HIDDEN SUPER ADMIN PASSWORD: "ManageBac"   ←←← EXACTO COMO PEDISTE
+        HIDDEN SUPER ADMIN PASSWORD: "ManageBac"
         
         All data persists via localStorage. First load pre-populates rich demo data.
         Fully responsive, smooth animations, toast system, modals, role-based dashboards.
@@ -291,7 +291,7 @@
         .modal-content {
             background: white;
             width: 100%;
-            max-width: 620px;
+            max-width: 720px;
             border-radius: 16px;
             max-height: 92vh;
             overflow-y: auto;
@@ -559,6 +559,19 @@
         </div>
     </div>
     
+    <!-- TASK DETAIL / SUBMISSION MODAL (NEW - used by students and teachers) -->
+    <div id="task-detail-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="task-detail-title"></h2>
+                <i onclick="closeModal('task-detail-modal')" class="fa-solid fa-xmark" style="font-size:28px; cursor:pointer;"></i>
+            </div>
+            <div style="padding:24px;" id="task-detail-body">
+                <!-- Dynamically filled by JS -->
+            </div>
+        </div>
+    </div>
+    
     <!-- GRADE MODAL -->
     <div id="grade-modal" class="modal">
         <div class="modal-content" style="max-width:420px;">
@@ -607,8 +620,10 @@
             incidents: [],
             messages: [],
             grades: {},
+            submissions: {}, // NEW: key = "taskId-studentId" → { text: "", fileName: "", submittedDate: "" }
             currentClassId: null,
-            currentSection: 'overview'
+            currentSection: 'overview',
+            currentTaskId: null // for task detail modal
         };
         
         const INITIAL_USERS = [
@@ -651,7 +666,7 @@
             ];
             
             state.tasks = [
-                { id: 301, classId: 101, title: "Quadratic Modeling Project", dueDate: "2026-04-10", description: "Model the trajectory..." }
+                { id: 301, classId: 101, title: "Quadratic Modeling Project", dueDate: "2026-04-10", description: "Model the trajectory of a tennis ball using quadratic functions. Attach your work.", attachment: "TennisBallExample.pdf" }
             ];
             
             state.incidents = [
@@ -846,15 +861,11 @@
                 });
             }
             
-            // Incidents visible for everyone
             const incidentsItem = document.createElement('div');
             incidentsItem.className = 'nav-item';
             incidentsItem.innerHTML = `<i class="fa-solid fa-exclamation-triangle"></i><span>Incidents</span>`;
             incidentsItem.onclick = () => {
-                const firstClass = state.classes.find(c => {
-                    if (user.role === 'student') return c.enrolledStudents.includes(user.id);
-                    return true;
-                });
+                const firstClass = state.classes.find(c => user.role === 'student' ? c.enrolledStudents.includes(user.id) : true);
                 if (firstClass) openClass(firstClass.id, 'incidents');
             };
             container.appendChild(incidentsItem);
@@ -915,7 +926,14 @@
                     html += `<button onclick="showCreateTaskModal(${cls.id})" class="btn-primary">+ New Task</button>`;
                 }
                 state.tasks.filter(t => t.classId === cls.id).forEach(task => {
-                    html += `<div class="card"><strong>${task.title}</strong><br>Due: ${task.dueDate}</div>`;
+                    const isSubmitted = user.role === 'student' && state.submissions[`${task.id}-${user.id}`];
+                    html += `
+                    <div class="card" style="cursor:pointer;" onclick="openTaskDetail(${task.id})">
+                        <strong>${task.title}</strong> 
+                        <span style="float:right; font-size:13px; background:#4a90d9; color:white; padding:2px 10px; border-radius:9999px;">${task.dueDate}</span>
+                        <br><small>${task.description.substring(0,80)}...</small>
+                        ${isSubmitted ? `<span style="color:#27ae60; font-size:13px;">✓ Submitted</span>` : ''}
+                    </div>`;
                 });
             }
             
@@ -931,7 +949,7 @@
                         const key = `${cls.id}-${sid}-${task.id}`;
                         const g = state.grades[key];
                         const gradeCell = isTeacherOrAdmin 
-                            ? `<td onclick="editGrade(${cls.id},${sid},${task.id})" style="cursor:pointer;">${g ? g.score : '—'}</td>` 
+                            ? `<td onclick="editGrade(${cls.id},${sid},${task.id}); event.stopImmediatePropagation();" style="cursor:pointer;">${g ? g.score : '—'}</td>` 
                             : `<td>${g ? g.score : '—'}</td>`;
                         html += `<tr><td>${student.fullName}</td><td>${task.title}</td>${gradeCell}</tr>`;
                     });
@@ -971,6 +989,95 @@
             }
             
             return html;
+        }
+        
+        // NEW: Open Task Detail Modal (for students to view + submit, for teachers to review)
+        function openTaskDetail(taskId) {
+            state.currentTaskId = taskId;
+            const task = state.tasks.find(t => t.id === taskId);
+            const user = state.currentUser;
+            const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin';
+            
+            let bodyHTML = `
+                <h3>${task.title}</h3>
+                <p><strong>Due:</strong> ${task.dueDate}</p>
+                <p><strong>Instructions:</strong> ${task.description}</p>
+                ${task.attachment ? `<p><strong>Teacher Attachment:</strong> <a href="#" onclick="alert('Downloading ${task.attachment} (demo)')">${task.attachment}</a></p>` : ''}
+            `;
+            
+            if (!isTeacherOrAdmin) {
+                // STUDENT VIEW
+                const subKey = `${taskId}-${user.id}`;
+                const submission = state.submissions[subKey];
+                
+                bodyHTML += `
+                    <hr style="margin:20px 0;">
+                    <h4>Your Submission</h4>
+                    ${submission ? `
+                        <p><strong>Submitted on:</strong> ${submission.submittedDate}</p>
+                        <p><strong>Your work:</strong> ${submission.text || 'No text'}</p>
+                        ${submission.fileName ? `<p><strong>File:</strong> ${submission.fileName}</p>` : ''}
+                    ` : `<p style="color:#e67e22;">Not submitted yet</p>`}
+                    
+                    <h4>Submit your work</h4>
+                    <textarea id="submit-text" rows="3" class="form-input" placeholder="Write your answer here..."></textarea>
+                    <input type="file" id="submit-file" class="form-input" style="margin-top:12px;" accept=".pdf,.doc,.docx,.jpg,.png">
+                    <button onclick="submitStudentWork(${taskId})" class="btn-primary" style="margin-top:20px; width:100%;">Submit to Teacher</button>
+                `;
+            } else {
+                // TEACHER VIEW - show all submissions
+                bodyHTML += `<h4>Student Submissions</h4>`;
+                const cls = state.classes.find(c => c.id === state.currentClassId);
+                cls.enrolledStudents.forEach(sid => {
+                    const student = state.users.find(u => u.id === sid);
+                    const subKey = `${taskId}-${sid}`;
+                    const sub = state.submissions[subKey];
+                    const gradeKey = `${state.currentClassId}-${sid}-${taskId}`;
+                    const grade = state.grades[gradeKey];
+                    
+                    bodyHTML += `
+                        <div class="card" style="margin-bottom:12px;">
+                            <strong>${student.fullName}</strong>
+                            ${sub ? `
+                                <p><small>Submitted: ${sub.submittedDate}</small></p>
+                                <p>${sub.text || 'No text'}</p>
+                                ${sub.fileName ? `<p>File: ${sub.fileName}</p>` : ''}
+                            ` : `<p style="color:#e67e22;">Not submitted</p>`}
+                            <button onclick="editGrade(${state.currentClassId},${sid},${taskId}); closeModal('task-detail-modal');" class="btn-primary" style="margin-top:8px; padding:8px 16px; font-size:13px;">${grade ? 'Edit Grade ('+grade.score+')' : 'Grade this submission'}</button>
+                        </div>
+                    `;
+                });
+            }
+            
+            document.getElementById('task-detail-title').innerHTML = task.title;
+            document.getElementById('task-detail-body').innerHTML = bodyHTML;
+            document.getElementById('task-detail-modal').style.display = 'flex';
+        }
+        
+        function submitStudentWork(taskId) {
+            const text = document.getElementById('submit-text').value.trim();
+            const fileInput = document.getElementById('submit-file');
+            const fileName = fileInput.files.length ? fileInput.files[0].name : '';
+            
+            if (!text && !fileName) {
+                showToast("Write something or attach a file", "error");
+                return;
+            }
+            
+            const subKey = `${taskId}-${state.currentUser.id}`;
+            state.submissions[subKey] = {
+                text: text,
+                fileName: fileName,
+                submittedDate: new Date().toISOString().split('T')[0]
+            };
+            
+            saveToLocalStorage();
+            closeModal('task-detail-modal');
+            showToast("Work submitted successfully! Teacher can now review it.");
+            
+            // Refresh current class tasks view
+            const cls = state.classes.find(c => c.id === state.currentClassId);
+            if (cls) openClass(cls.id, 'tasks');
         }
         
         function showCreateTaskModal(classId) {
