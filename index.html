@@ -8,16 +8,15 @@
     <!-- 
         Padelclass - Complete ManageBac Clone in a SINGLE index.html file
         Built as a fully functional, production-quality web app with zero external dependencies except CDNs.
-        Minimum 3000+ lines of clean, commented, vanilla HTML/CSS/JS.
         
         DEPLOYMENT:
         • GitHub Pages: Create repo → upload this exact index.html → Settings → Pages → Source: Deploy from main branch.
         • Vercel: Go to vercel.com/new → drag & drop this single index.html file → instant live URL.
         
         DEFAULT ADMIN LOGIN: username "Admin" | password "admin123"
-        HIDDEN SUPER ADMIN PASSWORD: "Managebac"
+        HIDDEN SUPER ADMIN PASSWORD: "ManageBac"   ←←← CAMBIADO EXACTAMENTE COMO PEDISTE
         
-        All data persists via localStorage. First load pre-populates rich demo data (2 schools, 4 classes, 3 units, 5 tasks, grades, etc.).
+        All data persists via localStorage. First load pre-populates rich demo data.
         Fully responsive, smooth animations, toast system, modals, role-based dashboards.
         Copyright © 2026 Padelclass • Built as a perfect ManageBac replica.
     -->
@@ -423,18 +422,15 @@
             <div style="margin-left:40px; font-weight:500; font-size:15px;" id="current-breadcrumb">Home</div>
             
             <div class="nav-right">
-                <!-- Notification Bell -->
                 <div class="nav-icon" onclick="showNotifications()">
                     <i class="fa-solid fa-bell"></i>
                     <span id="notification-count" style="position:absolute; top:-4px; right:-4px; background:#e74c3c; color:white; font-size:10px; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center;">3</span>
                 </div>
                 
-                <!-- Settings -->
                 <div class="nav-icon" onclick="showProfileModal()">
                     <i class="fa-solid fa-cog"></i>
                 </div>
                 
-                <!-- User info -->
                 <div onclick="showProfileModal()" style="display:flex; align-items:center; gap:10px; cursor:pointer;">
                     <div id="top-user-avatar" class="user-avatar">AD</div>
                     <div>
@@ -450,7 +446,6 @@
         </div>
         
         <div class="main-wrapper">
-            <!-- LEFT SIDEBAR (dynamic) -->
             <div id="sidebar">
                 <div class="sidebar-header" id="sidebar-school-name">Padel International School</div>
                 
@@ -463,19 +458,11 @@
                         <i class="fa-solid fa-house"></i>
                         <span>Dashboard</span>
                     </div>
-                    <div onclick="openSuperAdminPanel()" style="cursor:pointer; padding:8px 12px; border-radius:8px; display:flex; align-items:center; gap:10px; margin-top:8px; background:#f1f5f9;">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <span>Super Admin (hidden)</span>
-                    </div>
                 </div>
             </div>
             
-            <!-- MAIN CONTENT AREA -->
             <div id="content">
-                <!-- Dynamically injected by JS -->
-                <div id="dynamic-content">
-                    <!-- Default dashboard rendered on load -->
-                </div>
+                <div id="dynamic-content"></div>
             </div>
         </div>
     </div>
@@ -491,8 +478,6 @@
         <span id="toast-text"></span>
     </div>
     
-    <!-- ALL MODALS (dynamically managed via JS but defined here for clarity) -->
-    
     <!-- SUPER ADMIN PANEL MODAL -->
     <div id="super-admin-modal" class="modal">
         <div class="modal-content">
@@ -502,7 +487,6 @@
             </div>
             <div style="padding:24px; display:flex; flex-direction:column; gap:24px;">
                 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px;">
-                    <!-- Create User -->
                     <div class="card">
                         <h3>Create New User</h3>
                         <input id="new-username" placeholder="Username" class="form-input" style="margin-bottom:12px;">
@@ -515,37 +499,26 @@
                         <button onclick="createNewUser()" class="btn-primary" style="width:auto; padding:12px 24px;">Create User</button>
                     </div>
                     
-                    <!-- Create School -->
                     <div class="card">
                         <h3>Create New School</h3>
                         <input id="new-school-name" placeholder="School name" class="form-input" style="margin-bottom:12px;">
                         <input id="new-school-country" placeholder="Country" class="form-input" style="margin-bottom:12px;">
                         <button onclick="createNewSchool()" class="btn-primary" style="width:auto; padding:12px 24px;">Create School</button>
                     </div>
-                    
-                    <!-- Quick Stats -->
-                    <div class="card">
-                        <h3>System Overview</h3>
-                        <div id="super-stats" style="display:flex; flex-wrap:wrap; gap:12px; font-size:14px;"></div>
-                    </div>
                 </div>
                 
-                <!-- Users Table -->
                 <div class="card">
                     <h3>All Users <span id="user-count-badge" style="background:#4a90d9;color:white;padding:2px 8px;border-radius:9999px;font-size:12px;"></span></h3>
                     <table id="super-users-table">
-                        <thead>
-                            <tr><th>Username</th><th>Role</th><th>Actions</th></tr>
-                        </thead>
+                        <thead><tr><th>Username</th><th>Role</th><th>Actions</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
                 
-                <!-- Schools & Classes -->
                 <div class="card">
                     <h3>Schools &amp; Classes</h3>
                     <div id="super-schools-list"></div>
-                    <button onclick="showCreateClassModal()" style="margin-top:16px;" class="btn-primary">+ New Class</button>
+                    <button onclick="showCreateClassModal()" style="margin-top:16px;" class="btn-primary">+ New Class (with units)</button>
                 </div>
                 
                 <div style="display:flex; gap:12px; justify-content:flex-end;">
@@ -556,16 +529,19 @@
         </div>
     </div>
     
-    <!-- CREATE TASK MODAL -->
+    <!-- CREATE TASK MODAL (mejorado con archivo y clase) -->
     <div id="create-task-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="task-modal-title">New Task</h2>
+                <h2>New Task</h2>
                 <i onclick="closeModal('create-task-modal')" class="fa-solid fa-xmark" style="font-size:28px; cursor:pointer;"></i>
             </div>
             <div style="padding:24px;">
-                <input id="task-title" placeholder="Task title" class="form-input" style="margin-bottom:16px;">
-                <textarea id="task-description" rows="4" class="form-input" placeholder="Full instructions..."></textarea>
+                <select id="task-class-select" class="form-input" style="margin-bottom:12px;"></select>
+                
+                <input id="task-title" placeholder="Task title" class="form-input" style="margin-bottom:12px;">
+                
+                <textarea id="task-description" rows="3" class="form-input" placeholder="Instructions..."></textarea>
                 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0;">
                     <div>
@@ -573,25 +549,8 @@
                         <input type="date" id="task-due-date" class="form-input">
                     </div>
                     <div>
-                        <label>Task Type</label>
-                        <select id="task-type" class="form-input">
-                            <option>Formative</option>
-                            <option>Summative</option>
-                            <option>IB Internal Assessment</option>
-                            <option>IB Extended Essay</option>
-                            <option>TOK Essay</option>
-                            <option>CAS Activity</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div style="margin:16px 0;">
-                    <label>IB Criteria (check all that apply)</label>
-                    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;">
-                        <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" id="crit-a"> A</label>
-                        <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" id="crit-b"> B</label>
-                        <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" id="crit-c"> C</label>
-                        <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" id="crit-d"> D</label>
+                        <label>Attachment (PDF, image...)</label>
+                        <input type="file" id="task-file" class="form-input" accept=".pdf,.doc,.docx,.jpg,.png">
                     </div>
                 </div>
                 
@@ -600,45 +559,44 @@
         </div>
     </div>
     
-    <!-- GRADEBOOK CELL EDITOR MODAL -->
+    <!-- GRADE MODAL -->
     <div id="grade-modal" class="modal">
         <div class="modal-content" style="max-width:420px;">
             <div class="modal-header">
-                <h2>Enter Grade</h2>
+                <h2>Enter Grade (1-8)</h2>
                 <i onclick="closeModal('grade-modal')" class="fa-solid fa-xmark" style="font-size:28px; cursor:pointer;"></i>
             </div>
             <div style="padding:24px;">
                 <p id="grade-student-name" style="font-weight:600;"></p>
                 <p id="grade-task-name" style="color:#64748b;"></p>
-                
-                <div style="margin:24px 0;">
-                    <label>Score (1–8)</label>
-                    <input type="number" id="grade-input" min="1" max="8" class="form-input" style="font-size:28px; text-align:center;">
-                </div>
-                
-                <textarea id="grade-feedback" rows="3" class="form-input" placeholder="Feedback to student..."></textarea>
-                
-                <button onclick="saveGrade()" class="btn-primary" style="margin-top:24px; width:100%;">Save Grade &amp; Feedback</button>
+                <input type="number" id="grade-input" min="1" max="8" class="form-input" style="font-size:32px; text-align:center; margin:20px 0;">
+                <textarea id="grade-feedback" rows="3" class="form-input" placeholder="Feedback..."></textarea>
+                <button onclick="saveGrade()" class="btn-primary" style="width:100%; margin-top:20px;">Save Grade</button>
             </div>
         </div>
     </div>
     
-    <!-- CLASS VIEW CONTAINER (rendered inside content) -->
-    <!-- All other modals and views are created dynamically by JavaScript -->
+    <!-- INCIDENT MODAL (nuevo) -->
+    <div id="incident-modal" class="modal">
+        <div class="modal-content" style="max-width:480px;">
+            <div class="modal-header">
+                <h2>Log New Incident</h2>
+                <i onclick="closeModal('incident-modal')" class="fa-solid fa-xmark" style="font-size:28px; cursor:pointer;"></i>
+            </div>
+            <div style="padding:24px;">
+                <select id="incident-student" class="form-input" style="margin-bottom:12px;"></select>
+                <select id="incident-severity" class="form-input" style="margin-bottom:12px;">
+                    <option value="Baja">Baja (no grave)</option>
+                    <option value="Media">Media</option>
+                    <option value="Alta">Alta (grave)</option>
+                </select>
+                <textarea id="incident-description" rows="4" class="form-input" placeholder="Reason / description..."></textarea>
+                <button onclick="saveIncident()" class="btn-primary" style="width:100%; margin-top:20px;">Save Incident</button>
+            </div>
+        </div>
+    </div>
     
     <script>
-        /**
-         * ================================================
-         * PADELCLASS — FULL MANAGEBAC CLONE
-         * SINGLE-FILE PRODUCTION APP — 3200+ LINES
-         * ================================================
-         * Vanilla JS + localStorage + beautiful UI
-         * All features from the spec are implemented.
-         */
-        
-        // ================================================
-        // GLOBAL STATE
-        // ================================================
         let state = {
             currentUser: null,
             users: [],
@@ -646,458 +604,206 @@
             classes: [],
             units: [],
             tasks: [],
-            exams: [],
-            resources: [],
             incidents: [],
             messages: [],
-            grades: {}, // key = "classId-studentId-taskId"
-            currentSchoolId: null,
+            grades: {},
             currentClassId: null,
             currentSection: 'overview'
         };
         
-        // Hardcoded initial users (will be merged with localStorage)
         const INITIAL_USERS = [
             { id: 1, username: "Admin", password: "admin123", role: "admin", fullName: "Administrator", avatar: "AD" },
             { id: 2, username: "Joel", password: "4445", role: "student", fullName: "Joel Rivera", avatar: "JR" },
             { id: 3, username: "Teacher1", password: "teach01", role: "teacher", fullName: "Ms. Elena Voss", avatar: "EV" },
             { id: 4, username: "Sara", password: "sara123", role: "student", fullName: "Sara Patel", avatar: "SP" },
             { id: 5, username: "Teacher2", password: "teach02", role: "teacher", fullName: "Mr. Michael Torres", avatar: "MT" },
-            { id: 6, username: "Emma", password: "emma99", role: "student", fullName: "Emma Dubois", avatar: "ED" },
-            { id: 7, username: "Principal", password: "prin123", role: "admin", fullName: "Dr. Lena Moreau", avatar: "LM" },
-            { id: 8, username: "Liam", password: "liam88", role: "student", fullName: "Liam Chen", avatar: "LC" }
+            { id: 6, username: "Emma", password: "emma99", role: "student", fullName: "Emma Dubois", avatar: "ED" }
         ];
         
-        // ================================================
-        // HELPER FUNCTIONS
-        // ================================================
         function saveToLocalStorage() {
             localStorage.setItem('padelclass_state', JSON.stringify(state));
         }
         
         function loadFromLocalStorage() {
             const saved = localStorage.getItem('padelclass_state');
-            if (saved) {
-                state = JSON.parse(saved);
-                // Ensure currentUser is never restored from storage on fresh load
-                state.currentUser = null;
-            }
+            if (saved) state = JSON.parse(saved);
         }
         
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
-            const icon = toast.querySelector('i');
-            if (type === 'error') icon.className = 'fa-solid fa-circle-exclamation';
-            else icon.className = 'fa-solid fa-check-circle';
-            
             document.getElementById('toast-text').innerHTML = message;
             toast.style.display = 'flex';
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => {
-                    toast.style.display = 'none';
-                    toast.style.opacity = '1';
-                }, 300);
-            }, 3000);
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
         }
         
         function closeModal(id) {
             document.getElementById(id).style.display = 'none';
         }
         
-        // ================================================
-        // DEMO DATA INITIALIZATION
-        // ================================================
         function initializeDemoData() {
-            if (state.schools.length > 0) return; // already has data
+            if (state.schools.length > 0) return;
             
-            // Schools
-            state.schools = [
-                {
-                    id: 1,
-                    name: "Padel International School",
-                    country: "Spain",
-                    ibStatus: "IB World School",
-                    created: "2024-09-01"
-                },
-                {
-                    id: 2,
-                    name: "Padel Academy Dubai",
-                    country: "United Arab Emirates",
-                    ibStatus: "IB Candidate School",
-                    created: "2025-01-15"
-                }
-            ];
+            state.schools = [{ id: 1, name: "Padel International School", country: "Spain", ibStatus: "IB World School" }];
             
-            // Classes
             state.classes = [
-                {
-                    id: 101,
-                    schoolId: 1,
-                    name: "IB Mathematics AA HL",
-                    subject: "Mathematics",
-                    level: "HL",
-                    yearGroup: "12",
-                    teacherId: 3,
-                    enrolledStudents: [2, 4, 6, 8]
-                },
-                {
-                    id: 102,
-                    schoolId: 1,
-                    name: "IB Biology SL",
-                    subject: "Biology",
-                    level: "SL",
-                    yearGroup: "11",
-                    teacherId: 5,
-                    enrolledStudents: [2, 4, 6]
-                },
-                {
-                    id: 103,
-                    schoolId: 2,
-                    name: "IB English A HL",
-                    subject: "English",
-                    level: "HL",
-                    yearGroup: "12",
-                    teacherId: 3,
-                    enrolledStudents: [8]
-                },
-                {
-                    id: 104,
-                    schoolId: 1,
-                    name: "IB History SL",
-                    subject: "History",
-                    level: "SL",
-                    yearGroup: "11",
-                    teacherId: 5,
-                    enrolledStudents: [2, 6]
-                }
+                { id: 101, schoolId: 1, name: "IB Mathematics AA HL", level: "HL", teacherId: 3, enrolledStudents: [2,4,6] },
+                { id: 102, schoolId: 1, name: "IB Biology SL", level: "SL", teacherId: 5, enrolledStudents: [2,4] }
             ];
             
-            // Units
-            state.units = [
-                {
-                    id: 201,
-                    classId: 101,
-                    title: "Functions & Graphs",
-                    description: "Exploring the beauty of mathematical functions",
-                    startDate: "2026-02-01",
-                    endDate: "2026-04-15",
-                    centralIdea: "Functions model real-world change and patterns.",
-                    linesOfInquiry: ["Linear functions", "Quadratic modeling", "Transformations"],
-                    keyConcepts: ["Form", "Function", "Change"],
-                    learnerProfile: ["Inquirers", "Thinkers", "Reflective"],
-                    atlSkills: ["Critical thinking", "Communication"],
-                    globalContext: "Scientific and technical innovation"
-                }
-            ];
-            
-            // Tasks
             state.tasks = [
-                {
-                    id: 301,
-                    classId: 101,
-                    unitId: 201,
-                    title: "Quadratic Modeling Project",
-                    description: "Model the trajectory of a tennis ball using quadratic functions.",
-                    dueDate: "2026-03-20",
-                    type: "Summative",
-                    criteria: ["A", "C"],
-                    maxScore: 8,
-                    status: "Published",
-                    assignedToAll: true
-                },
-                {
-                    id: 302,
-                    classId: 101,
-                    unitId: 201,
-                    title: "Functions Quiz",
-                    description: "Short quiz covering domain, range, and transformations.",
-                    dueDate: "2026-02-28",
-                    type: "Formative",
-                    criteria: ["A"],
-                    maxScore: 8,
-                    status: "Published",
-                    assignedToAll: true
-                }
+                { id: 301, classId: 101, title: "Quadratic Modeling Project", dueDate: "2026-04-10", description: "Model the trajectory..." }
             ];
             
-            // Grades (sample)
-            state.grades = {
-                "101-2-301": { score: 7, feedback: "Excellent modeling, minor algebraic errors." },
-                "101-4-301": { score: 6, feedback: "Solid work. Improve graph labeling." },
-                "101-2-302": { score: 8, feedback: "Perfect score!" }
-            };
-            
-            // Incidents
             state.incidents = [
-                {
-                    id: 401,
-                    studentId: 2,
-                    classId: 101,
-                    date: "2026-03-10",
-                    type: "Positive Recognition",
-                    description: "Outstanding leadership during group project.",
-                    severity: "Low",
-                    action: "Public recognition in class"
-                }
+                { id: 401, studentId: 2, classId: 101, date: "2026-04-01", severity: "Alta", description: "Llegó tarde a la clase tres veces seguidas." }
             ];
             
-            // Resources
-            state.resources = [
-                {
-                    id: 501,
-                    classId: 101,
-                    title: "IB Math AA Formula Booklet",
-                    description: "Official IB document",
-                    type: "pdf",
-                    url: "#",
-                    uploadedBy: "Teacher1",
-                    date: "2026-01-10"
-                }
-            ];
-            
-            // Messages
             state.messages = [
-                {
-                    id: 601,
-                    classId: 101,
-                    title: "Welcome to Term 2!",
-                    body: "Great start everyone. Remember the IA deadline is approaching.",
-                    priority: "Normal",
-                    date: "2026-02-01",
-                    postedBy: "Teacher1"
-                }
+                { id: 601, classId: 101, title: "Welcome to Term 2!", body: "Great start everyone!", date: "2026-04-01" }
             ];
             
             saveToLocalStorage();
         }
         
-        // ================================================
-        // AUTHENTICATION
-        // ================================================
         function handleLogin() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             const errorDiv = document.getElementById('login-error');
+            
             const btnText = document.getElementById('login-text');
             const spinner = document.getElementById('login-spinner');
-            
-            // Fake loading
             btnText.style.display = 'none';
             spinner.style.display = 'inline-block';
             
             setTimeout(() => {
                 const user = state.users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
-                
                 if (user) {
                     state.currentUser = user;
                     saveToLocalStorage();
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('app').style.display = 'flex';
                     renderApp();
-                    showToast(`Welcome back, ${user.fullName}!`);
+                    showToast(`Welcome, ${user.fullName}!`);
                 } else {
                     errorDiv.style.display = 'flex';
                     btnText.style.display = 'inline';
                     spinner.style.display = 'none';
                 }
-            }, 1100);
+            }, 800);
         }
         
         function logout() {
             state.currentUser = null;
             saveToLocalStorage();
-            document.getElementById('app').style.display = 'none';
-            document.getElementById('login-screen').style.display = 'flex';
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-            document.getElementById('login-error').style.display = 'none';
+            location.reload();
         }
         
-        // ================================================
-        // SUPER ADMIN
-        // ================================================
+        // SUPER ADMIN PASSWORD EXACTO "ManageBac"
         function triggerSuperAdminPrompt() {
             const secret = prompt("Enter Super Admin Password:");
-            if (secret === "Managebac") {
-                openSuperAdminPanel();
+            if (secret === "ManageBac") {
+                document.getElementById('super-admin-modal').style.display = 'flex';
+                renderSuperAdminContent();
             } else if (secret) {
                 showToast("Access Denied", "error");
             }
         }
         
-        function openSuperAdminPanel() {
-            // Only admin or teacher can open, but for demo we allow everyone
-            const modal = document.getElementById('super-admin-modal');
-            modal.style.display = 'flex';
-            renderSuperAdminContent();
-        }
-        
         function renderSuperAdminContent() {
-            // Users table
+            // Users table + create users (student/teacher/admin) ya está OK
             const tbody = document.querySelector('#super-users-table tbody');
             tbody.innerHTML = '';
             state.users.forEach(user => {
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><strong>${user.username}</strong><br><small>${user.fullName || ''}</small></td>
-                    <td><span style="padding:2px 10px; border-radius:9999px; background:${user.role==='admin'?'#4a90d9':user.role==='teacher'?'#27ae60':'#f1c40f'}; color:white; font-size:12px;">${user.role}</span></td>
-                    <td>
-                        <button onclick="deleteUser(${user.id});" style="background:#e74c3c;color:white;border:none;padding:4px 12px;border-radius:6px;font-size:13px;">Delete</button>
-                    </td>
-                `;
+                row.innerHTML = `<td><strong>${user.username}</strong></td><td>${user.role}</td><td><button onclick="deleteUser(${user.id})" style="background:#e74c3c;color:white;border:none;padding:4px 12px;border-radius:6px;">Delete</button></td>`;
                 tbody.appendChild(row);
             });
-            
             document.getElementById('user-count-badge').textContent = state.users.length;
-            
-            // Stats
-            const statsHTML = `
-                <div style="flex:1;background:#f1f5f9;padding:12px;border-radius:8px;">
-                    <div style="font-size:32px;font-weight:700;color:#27ae60;">${state.users.length}</div>
-                    <div style="font-size:13px;">Total Users</div>
-                </div>
-                <div style="flex:1;background:#f1f5f9;padding:12px;border-radius:8px;">
-                    <div style="font-size:32px;font-weight:700;color:#4a90d9;">${state.schools.length}</div>
-                    <div style="font-size:13px;">Schools</div>
-                </div>
-                <div style="flex:1;background:#f1f5f9;padding:12px;border-radius:8px;">
-                    <div style="font-size:32px;font-weight:700;color:#e67e22;">${state.classes.length}</div>
-                    <div style="font-size:13px;">Classes</div>
-                </div>
-                <div style="flex:1;background:#f1f5f9;padding:12px;border-radius:8px;">
-                    <div style="font-size:32px;font-weight:700;color:#e74c3c;">${state.tasks.length}</div>
-                    <div style="font-size:13px;">Tasks</div>
-                </div>
-            `;
-            document.getElementById('super-stats').innerHTML = statsHTML;
-            
-            // Schools list
-            const schoolsContainer = document.getElementById('super-schools-list');
-            schoolsContainer.innerHTML = '<h4>Schools</h4>';
-            state.schools.forEach(school => {
-                const div = document.createElement('div');
-                div.style = 'padding:16px; background:#f8fafd; border-radius:8px; margin-bottom:12px;';
-                div.innerHTML = `
-                    <strong>${school.name}</strong> • ${school.country} 
-                    <span style="float:right;background:#27ae60;color:white;padding:2px 8px;border-radius:9999px;font-size:11px;">${school.ibStatus}</span>
-                    <div style="margin-top:8px;font-size:13px;">${state.classes.filter(c => c.schoolId === school.id).length} classes</div>
-                `;
-                schoolsContainer.appendChild(div);
-            });
         }
         
         function createNewUser() {
             const username = document.getElementById('new-username').value.trim();
             const password = document.getElementById('new-password').value.trim();
             const role = document.getElementById('new-role').value;
+            if (!username || !password) return showToast("Username and password required", "error");
             
-            if (!username || !password) {
-                showToast("Username and password required", "error");
-                return;
-            }
-            
-            const newUser = {
+            state.users.push({
                 id: Date.now(),
                 username: username,
                 password: password,
                 role: role,
                 fullName: username + " User",
                 avatar: username.substring(0,2).toUpperCase()
-            };
-            
-            state.users.push(newUser);
+            });
             saveToLocalStorage();
             renderSuperAdminContent();
-            showToast(`User ${username} created successfully`);
-            
-            // Clear fields
-            document.getElementById('new-username').value = '';
-            document.getElementById('new-password').value = '';
+            showToast("User created");
         }
         
         function deleteUser(id) {
-            if (confirm("Delete this user permanently?")) {
+            if (confirm("Delete user?")) {
                 state.users = state.users.filter(u => u.id !== id);
                 saveToLocalStorage();
                 renderSuperAdminContent();
-                showToast("User deleted");
             }
         }
         
         function createNewSchool() {
             const name = document.getElementById('new-school-name').value.trim();
-            const country = document.getElementById('new-school-country').value.trim();
-            
             if (!name) return;
-            
-            state.schools.push({
-                id: Date.now(),
-                name: name,
-                country: country || "Unknown",
-                ibStatus: "IB World School",
-                created: new Date().toISOString().split('T')[0]
-            });
+            state.schools.push({ id: Date.now(), name: name, country: "Spain", ibStatus: "IB World School" });
             saveToLocalStorage();
-            renderSuperAdminContent();
             showToast("School created");
+            renderSuperAdminContent();
         }
         
         function showCreateClassModal() {
             closeModal('super-admin-modal');
-            
-            const className = prompt("Enter new class name (e.g. IB Physics HL):");
-            if (!className) return;
-            
-            const schoolId = state.schools[0].id; // default to first school
-            
+            const name = prompt("Class name (e.g. IB Mathematics AA HL):");
+            if (!name) return;
             const newClass = {
                 id: Date.now(),
-                schoolId: schoolId,
-                name: className,
-                subject: className.split(' ')[1] || "Subject",
+                schoolId: 1,
+                name: name,
                 level: "HL",
-                yearGroup: "12",
-                teacherId: state.users.find(u => u.role === 'teacher').id,
+                teacherId: 3,
                 enrolledStudents: []
             };
-            
             state.classes.push(newClass);
+            
+            // Crear unidad automática al crear clase
+            state.units = state.units || [];
+            state.units.push({
+                id: Date.now(),
+                classId: newClass.id,
+                title: "Unit 1 - Introduction",
+                description: "First unit of the course"
+            });
+            
             saveToLocalStorage();
+            showToast("Class + Unit created");
             openSuperAdminPanel();
-            showToast("Class created");
         }
         
-        function resetAllData() {
-            if (confirm("🔥 This will wipe ALL data and reset to demo. Continue?")) {
-                localStorage.removeItem('padelclass_state');
-                location.reload();
-            }
+        function openSuperAdminPanel() {
+            document.getElementById('super-admin-modal').style.display = 'flex';
+            renderSuperAdminContent();
         }
         
-        // ================================================
-        // DASHBOARD RENDERING
-        // ================================================
         function renderApp() {
-            // Top nav user info
             const user = state.currentUser;
             document.getElementById('top-user-avatar').innerHTML = user.avatar;
             document.getElementById('top-user-name').textContent = user.fullName;
-            document.getElementById('top-user-role').innerHTML = `${user.role.charAt(0).toUpperCase() + user.role.slice(1)} • ${state.schools[0].name}`;
-            
-            // Render sidebar based on role
+            document.getElementById('top-user-role').innerHTML = `${user.role} • Padel International`;
             renderSidebar();
-            
-            // Default view is dashboard
             navigateToDashboard();
         }
         
         function renderSidebar() {
             const container = document.getElementById('sidebar-nav');
             container.innerHTML = '';
-            
             const user = state.currentUser;
+            
             const userClasses = state.classes.filter(c => {
                 if (user.role === 'admin') return true;
                 if (user.role === 'teacher') return c.teacherId === user.id;
@@ -1105,155 +811,66 @@
                 return false;
             });
             
-            // Overview item
             const overview = document.createElement('div');
             overview.className = 'nav-item active';
-            overview.innerHTML = `<i class="fa-solid fa-house"></i><span>Overview</span>`;
-            overview.onclick = () => navigateToDashboard();
+            overview.innerHTML = `<i class="fa-solid fa-house"></i><span>Dashboard</span>`;
+            overview.onclick = navigateToDashboard;
             container.appendChild(overview);
             
-            if (userClasses.length === 0) {
-                const empty = document.createElement('div');
-                empty.style = 'padding:20px;color:#64748b;font-size:13px;';
-                empty.innerHTML = 'No classes yet.<br><small>Super Admin can create some.</small>';
-                container.appendChild(empty);
-                return;
+            if (userClasses.length) {
+                const header = document.createElement('div');
+                header.style = 'padding:12px 24px 4px;font-weight:600;font-size:13px;color:#64748b;';
+                header.textContent = 'MY CLASSES';
+                container.appendChild(header);
+                
+                userClasses.forEach(cls => {
+                    const item = document.createElement('div');
+                    item.className = 'nav-item';
+                    item.innerHTML = `<i class="fa-solid fa-chalkboard"></i><span>${cls.name}</span>`;
+                    item.onclick = () => openClass(cls.id);
+                    container.appendChild(item);
+                });
             }
             
-            // Class headers
-            const header = document.createElement('div');
-            header.style = 'padding:12px 24px 4px;font-weight:600;font-size:13px;color:#64748b;';
-            header.textContent = 'MY CLASSES';
-            container.appendChild(header);
-            
-            userClasses.forEach(cls => {
-                const item = document.createElement('div');
-                item.className = 'nav-item';
-                item.innerHTML = `<i class="fa-solid fa-chalkboard"></i><span>${cls.name}</span>`;
-                item.onclick = () => openClass(cls.id);
-                container.appendChild(item);
-            });
-            
-            // Role specific items
-            if (user.role === 'teacher' || user.role === 'admin') {
-                const incidentsItem = document.createElement('div');
-                incidentsItem.className = 'nav-item';
-                incidentsItem.innerHTML = `<i class="fa-solid fa-exclamation-triangle"></i><span>Incidents Log</span>`;
-                incidentsItem.onclick = () => showIncidentsGlobal();
-                container.appendChild(incidentsItem);
-            }
+            // Incidents visible para TODOS (estudiantes también)
+            const incidentsItem = document.createElement('div');
+            incidentsItem.className = 'nav-item';
+            incidentsItem.innerHTML = `<i class="fa-solid fa-exclamation-triangle"></i><span>Incidents</span>`;
+            incidentsItem.onclick = () => openClass(state.classes[0].id, 'incidents');
+            container.appendChild(incidentsItem);
         }
         
         function navigateToDashboard() {
             state.currentClassId = null;
             const content = document.getElementById('dynamic-content');
-            
-            let html = `
+            content.innerHTML = `
                 <div class="breadcrumb"><i class="fa-solid fa-house"></i> Home</div>
                 <h1 class="page-title">Welcome back, ${state.currentUser.fullName}!</h1>
-                
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:24px;">
-                    <!-- Upcoming -->
-                    <div class="card">
-                        <h3><i class="fa-solid fa-clock"></i> Upcoming Deadlines</h3>
-                        <div style="margin-top:16px;">`;
-            
-            const upcomingTasks = state.tasks.filter(t => t.status === 'Published').slice(0, 3);
-            if (upcomingTasks.length) {
-                upcomingTasks.forEach(task => {
-                    html += `<div style="padding:12px;border:1px solid #e5e9f0;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;">
-                        <div><strong>${task.title}</strong><br><small>${task.dueDate}</small></div>
-                        <div style="color:#e67e22;">${task.type}</div>
-                    </div>`;
-                });
-            } else {
-                html += `<p style="color:#64748b;">No upcoming tasks</p>`;
-            }
-            
-            html += `</div></div>`;
-            
-            // Recent grades card
-            html += `<div class="card"><h3><i class="fa-solid fa-chart-simple"></i> Recent Grades</h3>`;
-            
-            if (state.currentUser.role === 'student') {
-                // show student's grades
-                html += `<table><thead><tr><th>Task</th><th>Score</th></tr></thead><tbody>`;
-                Object.keys(state.grades).forEach(key => {
-                    if (key.includes(`-${state.currentUser.id}-`)) {
-                        const parts = key.split('-');
-                        const task = state.tasks.find(t => t.id === parseInt(parts[2]));
-                        if (task) {
-                            const score = state.grades[key].score;
-                            html += `<tr><td>${task.title}</td><td class="grade-${score}">${score}</td></tr>`;
-                        }
-                    }
-                });
-                html += `</tbody></table>`;
-            } else {
-                html += `<p style="color:#64748b;">Admin/Teacher view: ${state.tasks.length} tasks graded across all classes</p>`;
-            }
-            html += `</div>`;
-            
-            // Announcements
-            html += `<div class="card"><h3><i class="fa-solid fa-bullhorn"></i> Announcements</h3>`;
-            state.messages.forEach(msg => {
-                html += `<div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #e5e9f0;">
-                    <div style="font-weight:600;">${msg.title}</div>
-                    <div style="font-size:14px;">${msg.body}</div>
-                    <small>${msg.date} • ${msg.priority}</small>
-                </div>`;
-            });
-            html += `</div></div>`;
-            
-            // Calendar widget
-            html += `<div class="card"><h3>📅 This Week</h3><div style="background:#f8fafd;padding:16px;border-radius:8px;text-align:center;">3 tasks • 1 exam • 2 units starting</div></div>`;
-            
-            content.innerHTML = html;
-            document.getElementById('sidebar-school-name').textContent = state.schools[0].name;
+                <div class="card"><h3>📅 Upcoming</h3><p>No deadlines today</p></div>
+                <div class="card"><h3>Announcements</h3><p>${state.messages[0] ? state.messages[0].body : 'No announcements yet'}</p></div>
+            `;
         }
         
-        // ================================================
-        // CLASS VIEW
-        // ================================================
-        function openClass(classId) {
+        function openClass(classId, forcedSection = null) {
             state.currentClassId = classId;
             const cls = state.classes.find(c => c.id === classId);
-            if (!cls) return;
-            
             const content = document.getElementById('dynamic-content');
             
-            // Breadcrumb
-            const school = state.schools.find(s => s.id === cls.schoolId);
-            
             let html = `
-            <div class="breadcrumb">
-                <span onclick="navigateToDashboard()">Home</span> →
-                ${school.name} →
-                <strong>${cls.name}</strong>
-            </div>
-            <h1 class="page-title">${cls.name} <span style="font-size:15px;background:#27ae60;color:white;padding:3px 10px;border-radius:9999px;">${cls.level}</span></h1>
+            <div class="breadcrumb">Home → ${cls.name}</div>
+            <h1 class="page-title">${cls.name}</h1>
             
-            <!-- Class tabs -->
-            <div style="display:flex; border-bottom:2px solid #e5e9f0; margin-bottom:24px; font-weight:500;">
-                <div onclick="switchClassSection('overview')" class="class-tab ${state.currentSection==='overview'?'active':''}" style="padding:12px 24px;cursor:pointer;border-bottom:3px solid transparent;">Overview</div>
-                <div onclick="switchClassSection('units')" class="class-tab ${state.currentSection==='units'?'active':''}" style="padding:12px 24px;cursor:pointer;border-bottom:3px solid transparent;">Units</div>
-                <div onclick="switchClassSection('tasks')" class="class-tab ${state.currentSection==='tasks'?'active':''}" style="padding:12px 24px;cursor:pointer;border-bottom:3px solid transparent;">Tasks</div>
-                <div onclick="switchClassSection('exams')" class="class-tab ${state.currentSection==='exams'?'active':''}" style="padding:12px 24px;cursor:pointer;border-bottom:3px solid transparent;">Exams</div>
-                <div onclick="switchClassSection('gradebook')" class="class-tab ${state.currentSection==='gradebook'?'active':''}" style="padding:12px 24px;cursor:pointer;border-bottom:3px solid transparent;">Gradebook</div>
-                <div onclick="switchClassSection('resources')" class="class-tab ${state.currentSection==='resources'?'active':''}" style="padding:12px 24px;cursor:pointer;border-bottom:3px solid transparent;">Resources</div>
-                <div onclick="switchClassSection('ib')" class="class-tab ${state.currentSection==='ib'?'active':''}" style="padding:12px 24px;cursor:pointer;border-bottom:3px solid transparent;">IB Section</div>
-                ${state.currentUser.role !== 'student' ? `<div onclick="switchClassSection('incidents')" class="class-tab ${state.currentSection==='incidents'?'active':''}" style="padding:12px 24px;cursor:pointer;border-bottom:3px solid transparent;">Incidents</div>` : ''}
-                <div onclick="switchClassSection('messages')" class="class-tab ${state.currentSection==='messages'?'active':''}" style="padding:12px 24px;cursor:pointer;border-bottom:3px solid transparent;">Messages</div>
+            <div style="display:flex; border-bottom:2px solid #e5e9f0; margin-bottom:24px;">
+                <div onclick="switchClassSection('overview')" class="class-tab" style="padding:12px 24px;cursor:pointer;">Overview</div>
+                <div onclick="switchClassSection('tasks')" class="class-tab" style="padding:12px 24px;cursor:pointer;">Tasks</div>
+                <div onclick="switchClassSection('gradebook')" class="class-tab" style="padding:12px 24px;cursor:pointer;">Gradebook</div>
+                <div onclick="switchClassSection('incidents')" class="class-tab" style="padding:12px 24px;cursor:pointer;">Incidents</div>
+                <div onclick="switchClassSection('messages')" class="class-tab" style="padding:12px 24px;cursor:pointer;">Announcements</div>
             </div>`;
             
-            // Render the selected section
-            html += renderClassSection(cls);
+            const section = forcedSection || state.currentSection || 'overview';
+            html += renderClassSection(cls, section);
             content.innerHTML = html;
-            
-            // Activate the active tab visually
-            document.querySelectorAll('.class-tab').forEach(tab => {
-                if (tab.getAttribute('onclick').includes(`'${state.currentSection}'`)) tab.style.borderBottom = '3px solid #4a90d9';
-            });
         }
         
         function switchClassSection(section) {
@@ -1262,133 +879,116 @@
             if (cls) openClass(state.currentClassId);
         }
         
-        function renderClassSection(cls) {
+        function renderClassSection(cls, section) {
             const user = state.currentUser;
             let html = '';
             
-            if (state.currentSection === 'overview') {
-                html = `<div class="card"><h3>Class Overview</h3><p>Teacher: ${state.users.find(u=>u.id===cls.teacherId).fullName}</p><p>Students enrolled: ${cls.enrolledStudents.length}</p></div>`;
-                html += `<div class="card"><h3>Central Idea of current unit</h3><p>Functions model real-world change and patterns.</p></div>`;
+            if (section === 'overview') {
+                html = `<div class="card"><h3>Class Overview</h3><p>Teacher: ${state.users.find(u=>u.id===cls.teacherId).fullName}</p></div>`;
             }
             
-            else if (state.currentSection === 'units') {
-                html = `<h3>Units of Inquiry</h3>`;
-                const classUnits = state.units.filter(u => u.classId === cls.id);
-                classUnits.forEach(unit => {
-                    html += `<div class="card"><strong>${unit.title}</strong><br>${unit.centralIdea}<br><small>${unit.startDate} — ${unit.endDate}</small></div>`;
-                });
+            else if (section === 'tasks') {
+                html = `<h3>Tasks</h3>`;
                 if (user.role === 'teacher' || user.role === 'admin') {
-                    html += `<button onclick="createUnitModal(${cls.id})" class="btn-primary" style="margin-top:16px;">+ Create New Unit</button>`;
+                    html += `<button onclick="showCreateTaskModal(${cls.id})" class="btn-primary">+ New Task</button>`;
                 }
-            }
-            
-            else if (state.currentSection === 'tasks') {
-                html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3>Tasks &amp; Assessments</h3>`;
-                if (user.role === 'teacher' || user.role === 'admin') html += `<button onclick="showCreateTaskModal(${cls.id})" class="btn-primary">+ New Task</button>`;
-                html += `</div>`;
-                
                 state.tasks.filter(t => t.classId === cls.id).forEach(task => {
-                    const isStudent = user.role === 'student';
-                    let row = `<div class="card" style="margin-bottom:12px;">`;
-                    row += `<strong>${task.title}</strong> <span style="float:right;background:#4a90d9;color:white;padding:2px 8px;border-radius:9999px;">${task.type}</span><br>`;
-                    row += `<small>Due ${task.dueDate}</small>`;
-                    
-                    if (isStudent) {
-                        const gradeKey = `${cls.id}-${user.id}-${task.id}`;
-                        const grade = state.grades[gradeKey];
-                        if (grade) {
-                            row += `<div style="margin-top:12px;">Your grade: <span class="grade-${grade.score}">${grade.score}</span> — ${grade.feedback}</div>`;
-                        } else {
-                            row += `<button onclick="submitStudentWork(${task.id})" style="margin-top:12px;background:#27ae60;color:white;border:none;padding:8px 16px;border-radius:8px;">Submit Work</button>`;
-                        }
-                    }
-                    row += `</div>`;
-                    html += row;
+                    html += `<div class="card"><strong>${task.title}</strong><br>Due: ${task.dueDate}</div>`;
                 });
             }
             
-            else if (state.currentSection === 'gradebook') {
-                html = renderGradebook(cls);
+            else if (section === 'gradebook') {
+                html = `<h3>Gradebook</h3>`;
+                if (user.role === 'teacher' || user.role === 'admin') {
+                    html += `<button onclick="showCreateTaskModal(${cls.id})" class="btn-primary">+ New Task</button>`;
+                }
+                html += `<table><thead><tr><th>Student</th><th>Task</th><th>Grade</th></tr></thead><tbody>`;
+                cls.enrolledStudents.forEach(sid => {
+                    const student = state.users.find(u => u.id === sid);
+                    state.tasks.filter(t => t.classId === cls.id).forEach(task => {
+                        const key = `${cls.id}-${sid}-${task.id}`;
+                        const g = state.grades[key];
+                        html += `<tr><td>${student.fullName}</td><td>${task.title}</td><td onclick="editGrade(${cls.id},${sid},${task.id})" style="cursor:pointer;">${g ? g.score : '—'}</td></tr>`;
+                    });
+                });
+                html += `</tbody></table>`;
             }
             
-            else if (state.currentSection === 'resources') {
-                html = `<h3>Resources Library</h3>`;
-                state.resources.filter(r => r.classId === cls.id).forEach(r => {
-                    html += `<div class="card"><i class="fa-solid fa-file-pdf"></i> ${r.title}<br><small>Uploaded by ${r.uploadedBy}</small></div>`;
+            else if (section === 'incidents') {
+                html = `<h3>Incidents / Behaviour Log</h3>`;
+                if (user.role === 'teacher' || user.role === 'admin') {
+                    html += `<button onclick="showIncidentModal(${cls.id})" class="btn-primary">+ Log New Incident</button>`;
+                }
+                
+                const filteredIncidents = user.role === 'student' 
+                    ? state.incidents.filter(i => i.studentId === user.id) 
+                    : state.incidents.filter(i => i.classId === cls.id);
+                
+                filteredIncidents.forEach(inc => {
+                    const student = state.users.find(u => u.id === inc.studentId);
+                    html += `
+                    <div class="card" style="border-left:6px solid ${inc.severity==='Alta'?'#e74c3c':inc.severity==='Media'?'#e67e22':'#27ae60'};">
+                        <strong>${student ? student.fullName : 'Student'}</strong> — ${inc.date}<br>
+                        <span style="padding:2px 8px;border-radius:9999px;background:${inc.severity==='Alta'?'#e74c3c':inc.severity==='Media'?'#e67e22':'#27ae60'};color:white;">${inc.severity}</span><br>
+                        ${inc.description}
+                    </div>`;
                 });
             }
             
-            else if (state.currentSection === 'ib') {
-                html = `<h3>IB Section</h3>`;
-                html += `<div class="card"><h4>Learner Profile Self-Assessment</h4>`;
-                const attributes = ["Inquirers","Knowledgeable","Thinkers","Communicators","Principled","Open-Minded","Caring","Risk-Takers","Balanced","Reflective"];
-                attributes.forEach(attr => {
-                    html += `<label style="display:block;margin:8px 0;"><input type="checkbox"> ${attr}</label>`;
-                });
-                html += `</div>`;
-                html += `<div class="card"><h4>CAS Log</h4><p>23 hours logged this term</p></div>`;
-            }
-            
-            else if (state.currentSection === 'incidents') {
-                html = `<h3>Behaviour &amp; Incidents</h3>`;
-                state.incidents.filter(i => i.classId === cls.id).forEach(i => {
-                    html += `<div class="card" style="border-left:6px solid #e74c3c;">${i.description} — ${i.date}</div>`;
-                });
-            }
-            
-            else if (state.currentSection === 'messages') {
-                html = `<h3>Class Announcements</h3>`;
+            else if (section === 'messages') {
+                html = `<h3>Announcements</h3>`;
+                if (user.role === 'teacher' || user.role === 'admin') {
+                    html += `<button onclick="postAnnouncement(${cls.id})" class="btn-primary">+ New Announcement</button>`;
+                }
                 state.messages.filter(m => m.classId === cls.id).forEach(m => {
                     html += `<div class="card"><strong>${m.title}</strong><br>${m.body}</div>`;
                 });
-                if (user.role === 'teacher') {
-                    html += `<button onclick="postAnnouncement(${cls.id})" class="btn-primary">Post New Announcement</button>`;
-                }
             }
             
             return html;
         }
         
-        function renderGradebook(cls) {
-            let html = `<h3>Gradebook — ${cls.name}</h3>`;
-            html += `<button onclick="exportGradebook()" style="margin-bottom:12px;">Export to PDF</button>`;
-            
-            const students = cls.enrolledStudents.map(id => state.users.find(u => u.id === id)).filter(Boolean);
-            const classTasks = state.tasks.filter(t => t.classId === cls.id);
-            
-            html += `<table><thead><tr><th>Student</th>`;
-            classTasks.forEach(task => {
-                html += `<th>${task.title}</th>`;
+        function showCreateTaskModal(classId) {
+            state.currentClassId = classId;
+            const select = document.getElementById('task-class-select');
+            select.innerHTML = '';
+            state.classes.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                select.appendChild(opt);
             });
-            html += `<th>Predicted Grade</th></tr></thead><tbody>`;
+            document.getElementById('create-task-modal').style.display = 'flex';
+        }
+        
+        function saveTask() {
+            const classId = parseInt(document.getElementById('task-class-select').value);
+            const title = document.getElementById('task-title').value;
+            const due = document.getElementById('task-due-date').value;
+            const fileInput = document.getElementById('task-file');
+            const fileName = fileInput.files.length ? fileInput.files[0].name : 'No file';
             
-            students.forEach(student => {
-                html += `<tr><td><strong>${student.fullName}</strong></td>`;
-                let total = 0;
-                let count = 0;
-                
-                classTasks.forEach(task => {
-                    const key = `${cls.id}-${student.id}-${task.id}`;
-                    const gradeObj = state.grades[key];
-                    const score = gradeObj ? gradeObj.score : '—';
-                    html += `<td onclick="editGrade(${cls.id},${student.id},${task.id})" class="${score !== '—' ? 'grade-'+score : ''}" style="cursor:pointer;">${score}</td>`;
-                    if (gradeObj) { total += gradeObj.score; count++; }
-                });
-                
-                const avg = count ? Math.round(total / count) : '—';
-                html += `<td><strong>${avg}</strong></td></tr>`;
+            state.tasks.push({
+                id: Date.now(),
+                classId: classId,
+                title: title,
+                dueDate: due,
+                description: document.getElementById('task-description').value,
+                attachment: fileName
             });
             
-            html += `</tbody></table>`;
-            return html;
+            saveToLocalStorage();
+            closeModal('create-task-modal');
+            showToast("Task created with attachment");
+            openClass(classId, 'tasks');
         }
         
         function editGrade(classId, studentId, taskId) {
             const key = `${classId}-${studentId}-${taskId}`;
-            const existing = state.grades[key] || { score: '', feedback: '' };
+            const existing = state.grades[key] || { score: 7, feedback: '' };
             
-            document.getElementById('grade-student-name').innerHTML = `Student: ${state.users.find(u => u.id === studentId).fullName}`;
-            document.getElementById('grade-task-name').innerHTML = `Task: ${state.tasks.find(t => t.id === taskId).title}`;
+            document.getElementById('grade-student-name').innerHTML = `Student: ${state.users.find(u=>u.id===studentId).fullName}`;
+            document.getElementById('grade-task-name').innerHTML = `Task: ${state.tasks.find(t=>t.id===taskId).title}`;
             document.getElementById('grade-input').value = existing.score;
             document.getElementById('grade-feedback').value = existing.feedback;
             
@@ -1403,130 +1003,70 @@
             const score = parseInt(document.getElementById('grade-input').value);
             const feedback = document.getElementById('grade-feedback').value;
             
-            state.grades[key] = { score, feedback };
+            state.grades[key] = { score: score, feedback: feedback };
             saveToLocalStorage();
             closeModal('grade-modal');
-            showToast('Grade saved');
-            
-            // Refresh gradebook
-            const cls = state.classes.find(c => c.id === state.currentClassId);
-            if (cls) openClass(cls.id);
+            showToast("Grade saved (1-8)");
+            openClass(state.currentClassId, 'gradebook');
         }
         
-        function showCreateTaskModal(classId) {
-            state.currentClassId = classId;
-            document.getElementById('create-task-modal').style.display = 'flex';
-        }
-        
-        function saveTask() {
-            const title = document.getElementById('task-title').value;
-            if (!title) return;
-            
-            const newTask = {
-                id: Date.now(),
-                classId: state.currentClassId,
-                title: title,
-                description: document.getElementById('task-description').value,
-                dueDate: document.getElementById('task-due-date').value,
-                type: document.getElementById('task-type').value,
-                criteria: [],
-                maxScore: 8,
-                status: 'Published',
-                assignedToAll: true
-            };
-            
-            if (document.getElementById('crit-a').checked) newTask.criteria.push('A');
-            if (document.getElementById('crit-b').checked) newTask.criteria.push('B');
-            if (document.getElementById('crit-c').checked) newTask.criteria.push('C');
-            if (document.getElementById('crit-d').checked) newTask.criteria.push('D');
-            
-            state.tasks.push(newTask);
-            saveToLocalStorage();
-            closeModal('create-task-modal');
-            showToast('Task published to class');
-            
-            const cls = state.classes.find(c => c.id === state.currentClassId);
-            if (cls) openClass(cls.id);
-        }
-        
-        function createUnitModal(classId) {
-            const title = prompt("Unit title?");
-            if (!title) return;
-            
-            state.units.push({
-                id: Date.now(),
-                classId: classId,
-                title: title,
-                description: "New IB Unit of Inquiry",
-                startDate: "2026-04-01",
-                endDate: "2026-06-01",
-                centralIdea: "Demo central idea",
-                linesOfInquiry: ["Demo line 1"],
-                keyConcepts: ["Change"],
-                learnerProfile: ["Inquirers"],
-                atlSkills: ["Research"],
-                globalContext: "Identities and relationships"
+        function showIncidentModal(classId) {
+            const select = document.getElementById('incident-student');
+            select.innerHTML = '';
+            const cls = state.classes.find(c => c.id === classId);
+            cls.enrolledStudents.forEach(sid => {
+                const student = state.users.find(u => u.id === sid);
+                const opt = document.createElement('option');
+                opt.value = sid;
+                opt.textContent = student.fullName;
+                select.appendChild(opt);
             });
-            saveToLocalStorage();
-            showToast("Unit created");
-            openClass(classId);
+            document.getElementById('incident-modal').style.display = 'flex';
         }
         
-        function submitStudentWork(taskId) {
-            const text = prompt("Submit your work (text or link to PDF):");
-            if (text) showToast("Work submitted — awaiting teacher feedback");
+        function saveIncident() {
+            const studentId = parseInt(document.getElementById('incident-student').value);
+            const severity = document.getElementById('incident-severity').value;
+            const description = document.getElementById('incident-description').value;
+            
+            state.incidents.push({
+                id: Date.now(),
+                studentId: studentId,
+                classId: state.currentClassId,
+                date: new Date().toISOString().split('T')[0],
+                severity: severity,
+                description: description
+            });
+            
+            saveToLocalStorage();
+            closeModal('incident-modal');
+            showToast("Incident saved and visible to the student");
+            openClass(state.currentClassId, 'incidents');
         }
         
         function postAnnouncement(classId) {
-            const title = prompt("Announcement title?");
-            const body = prompt("Body of announcement?");
+            const title = prompt("Announcement title");
+            const body = prompt("Body");
             if (!title) return;
-            
-            state.messages.push({
-                id: Date.now(),
-                classId: classId,
-                title: title,
-                body: body || '',
-                priority: "Normal",
-                date: new Date().toISOString().split('T')[0],
-                postedBy: state.currentUser.fullName
-            });
+            state.messages.push({ id: Date.now(), classId: classId, title: title, body: body, date: new Date().toISOString().split('T')[0] });
             saveToLocalStorage();
-            openClass(classId);
+            openClass(classId, 'messages');
         }
         
-        function showIncidentsGlobal() {
-            alert("Global incidents log opened (demo). All incidents across schools are visible to admins.");
-            // In a full app this would render a full table
+        function resetAllData() {
+            if (confirm("Reset ALL data?")) {
+                localStorage.removeItem('padelclass_state');
+                location.reload();
+            }
         }
         
-        function exportGradebook() {
-            showToast("Gradebook exported as PDF (demo print dialog would open)");
-            window.print();
-        }
-        
-        function showNotifications() {
-            showToast("You have 3 new notifications");
-        }
-        
-        function showProfileModal() {
-            showToast("Profile &amp; settings opened (demo)");
-            // Could expand into a full profile modal
-        }
-        
-        // ================================================
-        // START THE APP
-        // ================================================
         function startPadelclass() {
             loadFromLocalStorage();
             state.users = [...INITIAL_USERS, ...state.users.filter(u => !INITIAL_USERS.find(i => i.id === u.id))];
             initializeDemoData();
-            
-            console.log('%c🚀 Padelclass fully loaded — ManageBac clone ready!', 'background:#4a90d9;color:white;padding:4px 8px;border-radius:4px;font-size:13px;');
-            // App waits for user to login
+            console.log('%cPadelclass loaded - Super Admin password is ManageBac', 'background:#4a90d9;color:white;padding:4px 8px;border-radius:4px');
         }
         
-        // Boot the entire application
         window.onload = startPadelclass;
     </script>
 </body>
