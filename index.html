@@ -718,7 +718,6 @@
             });
             document.getElementById('user-count-badge').textContent = state.users.length;
             
-            // Schools & classes list
             const schoolsContainer = document.getElementById('super-schools-list');
             schoolsContainer.innerHTML = '<h4>Schools &amp; Classes</h4>';
             state.schools.forEach(school => {
@@ -751,7 +750,6 @@
         function deleteUser(id) {
             if (confirm("Delete this user permanently? (Data will NOT reset)")) {
                 state.users = state.users.filter(u => u.id !== id);
-                // Remove from all enrolled lists to keep clean
                 state.classes.forEach(cls => {
                     cls.enrolledStudents = cls.enrolledStudents.filter(sid => sid !== id);
                 });
@@ -785,11 +783,9 @@
             };
             state.classes.push(newClass);
             
-            // Auto-enroll ALL current students so the class appears for everyone immediately
             const allStudents = state.users.filter(u => u.role === 'student').map(u => u.id);
             newClass.enrolledStudents = [...allStudents];
             
-            // Create one unit automatically
             state.units = state.units || [];
             state.units.push({
                 id: Date.now(),
@@ -854,7 +850,13 @@
             const incidentsItem = document.createElement('div');
             incidentsItem.className = 'nav-item';
             incidentsItem.innerHTML = `<i class="fa-solid fa-exclamation-triangle"></i><span>Incidents</span>`;
-            incidentsItem.onclick = () => openClass(state.classes[0] ? state.classes[0].id : null, 'incidents');
+            incidentsItem.onclick = () => {
+                const firstClass = state.classes.find(c => {
+                    if (user.role === 'student') return c.enrolledStudents.includes(user.id);
+                    return true;
+                });
+                if (firstClass) openClass(firstClass.id, 'incidents');
+            };
             container.appendChild(incidentsItem);
         }
         
@@ -901,6 +903,7 @@
         function renderClassSection(cls, section) {
             const user = state.currentUser;
             let html = '';
+            const isTeacherOrAdmin = user.role === 'teacher' || user.role === 'admin';
             
             if (section === 'overview') {
                 html = `<div class="card"><h3>Class Overview</h3><p>Teacher: ${state.users.find(u=>u.id===cls.teacherId).fullName}</p><p>Students: ${cls.enrolledStudents.length}</p></div>`;
@@ -908,7 +911,7 @@
             
             else if (section === 'tasks') {
                 html = `<h3>Tasks</h3>`;
-                if (user.role === 'teacher' || user.role === 'admin') {
+                if (isTeacherOrAdmin) {
                     html += `<button onclick="showCreateTaskModal(${cls.id})" class="btn-primary">+ New Task</button>`;
                 }
                 state.tasks.filter(t => t.classId === cls.id).forEach(task => {
@@ -918,7 +921,7 @@
             
             else if (section === 'gradebook') {
                 html = `<h3>Gradebook</h3>`;
-                if (user.role === 'teacher' || user.role === 'admin') {
+                if (isTeacherOrAdmin) {
                     html += `<button onclick="showCreateTaskModal(${cls.id})" class="btn-primary">+ New Task</button>`;
                 }
                 html += `<table><thead><tr><th>Student</th><th>Task</th><th>Grade</th></tr></thead><tbody>`;
@@ -927,7 +930,10 @@
                     state.tasks.filter(t => t.classId === cls.id).forEach(task => {
                         const key = `${cls.id}-${sid}-${task.id}`;
                         const g = state.grades[key];
-                        html += `<tr><td>${student.fullName}</td><td>${task.title}</td><td onclick="editGrade(${cls.id},${sid},${task.id})" style="cursor:pointer;">${g ? g.score : '—'}</td></tr>`;
+                        const gradeCell = isTeacherOrAdmin 
+                            ? `<td onclick="editGrade(${cls.id},${sid},${task.id})" style="cursor:pointer;">${g ? g.score : '—'}</td>` 
+                            : `<td>${g ? g.score : '—'}</td>`;
+                        html += `<tr><td>${student.fullName}</td><td>${task.title}</td>${gradeCell}</tr>`;
                     });
                 });
                 html += `</tbody></table>`;
@@ -935,7 +941,7 @@
             
             else if (section === 'incidents') {
                 html = `<h3>Incidents / Behaviour Log</h3>`;
-                if (user.role === 'teacher' || user.role === 'admin') {
+                if (isTeacherOrAdmin) {
                     html += `<button onclick="showIncidentModal(${cls.id})" class="btn-primary">+ Log New Incident</button>`;
                 }
                 
@@ -956,7 +962,7 @@
             
             else if (section === 'messages') {
                 html = `<h3>Announcements</h3>`;
-                if (user.role === 'teacher' || user.role === 'admin') {
+                if (isTeacherOrAdmin) {
                     html += `<button onclick="postAnnouncement(${cls.id})" class="btn-primary">+ New Announcement</button>`;
                 }
                 state.messages.filter(m => m.classId === cls.id).forEach(m => {
