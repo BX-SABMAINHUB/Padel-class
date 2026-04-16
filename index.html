@@ -14,7 +14,7 @@
         • Vercel: Go to vercel.com/new → drag & drop this single index.html file → instant live URL.
         
         DEFAULT ADMIN LOGIN: username "Admin" | password "admin123"
-        HIDDEN SUPER ADMIN PASSWORD: "ManageBac"   ←←← CAMBIADO EXACTAMENTE COMO PEDISTE
+        HIDDEN SUPER ADMIN PASSWORD: "ManageBac"   ←←← EXACTO COMO PEDISTE
         
         All data persists via localStorage. First load pre-populates rich demo data.
         Fully responsive, smooth animations, toast system, modals, role-based dashboards.
@@ -518,7 +518,7 @@
                 <div class="card">
                     <h3>Schools &amp; Classes</h3>
                     <div id="super-schools-list"></div>
-                    <button onclick="showCreateClassModal()" style="margin-top:16px;" class="btn-primary">+ New Class (with units)</button>
+                    <button onclick="showCreateClassModal()" style="margin-top:16px;" class="btn-primary">+ New Class (with units + auto-enroll students)</button>
                 </div>
                 
                 <div style="display:flex; gap:12px; justify-content:flex-end;">
@@ -529,7 +529,7 @@
         </div>
     </div>
     
-    <!-- CREATE TASK MODAL (mejorado con archivo y clase) -->
+    <!-- CREATE TASK MODAL -->
     <div id="create-task-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -576,7 +576,7 @@
         </div>
     </div>
     
-    <!-- INCIDENT MODAL (nuevo) -->
+    <!-- INCIDENT MODAL -->
     <div id="incident-modal" class="modal">
         <div class="modal-content" style="max-width:480px;">
             <div class="modal-header">
@@ -698,7 +698,6 @@
             location.reload();
         }
         
-        // SUPER ADMIN PASSWORD EXACTO "ManageBac"
         function triggerSuperAdminPrompt() {
             const secret = prompt("Enter Super Admin Password:");
             if (secret === "ManageBac") {
@@ -710,7 +709,6 @@
         }
         
         function renderSuperAdminContent() {
-            // Users table + create users (student/teacher/admin) ya está OK
             const tbody = document.querySelector('#super-users-table tbody');
             tbody.innerHTML = '';
             state.users.forEach(user => {
@@ -719,6 +717,16 @@
                 tbody.appendChild(row);
             });
             document.getElementById('user-count-badge').textContent = state.users.length;
+            
+            // Schools & classes list
+            const schoolsContainer = document.getElementById('super-schools-list');
+            schoolsContainer.innerHTML = '<h4>Schools &amp; Classes</h4>';
+            state.schools.forEach(school => {
+                const div = document.createElement('div');
+                div.style = 'padding:16px; background:#f8fafd; border-radius:8px; margin-bottom:12px;';
+                div.innerHTML = `<strong>${school.name}</strong> — ${state.classes.filter(c => c.schoolId === school.id).length} classes`;
+                schoolsContainer.appendChild(div);
+            });
         }
         
         function createNewUser() {
@@ -737,14 +745,19 @@
             });
             saveToLocalStorage();
             renderSuperAdminContent();
-            showToast("User created");
+            showToast("User created successfully");
         }
         
         function deleteUser(id) {
-            if (confirm("Delete user?")) {
+            if (confirm("Delete this user permanently? (Data will NOT reset)")) {
                 state.users = state.users.filter(u => u.id !== id);
+                // Remove from all enrolled lists to keep clean
+                state.classes.forEach(cls => {
+                    cls.enrolledStudents = cls.enrolledStudents.filter(sid => sid !== id);
+                });
                 saveToLocalStorage();
                 renderSuperAdminContent();
+                showToast("User deleted permanently");
             }
         }
         
@@ -761,6 +774,7 @@
             closeModal('super-admin-modal');
             const name = prompt("Class name (e.g. IB Mathematics AA HL):");
             if (!name) return;
+            
             const newClass = {
                 id: Date.now(),
                 schoolId: 1,
@@ -771,7 +785,11 @@
             };
             state.classes.push(newClass);
             
-            // Crear unidad automática al crear clase
+            // Auto-enroll ALL current students so the class appears for everyone immediately
+            const allStudents = state.users.filter(u => u.role === 'student').map(u => u.id);
+            newClass.enrolledStudents = [...allStudents];
+            
+            // Create one unit automatically
             state.units = state.units || [];
             state.units.push({
                 id: Date.now(),
@@ -781,7 +799,7 @@
             });
             
             saveToLocalStorage();
-            showToast("Class + Unit created");
+            showToast("Class created + auto-enrolled all students + unit added");
             openSuperAdminPanel();
         }
         
@@ -832,11 +850,11 @@
                 });
             }
             
-            // Incidents visible para TODOS (estudiantes también)
+            // Incidents visible for everyone
             const incidentsItem = document.createElement('div');
             incidentsItem.className = 'nav-item';
             incidentsItem.innerHTML = `<i class="fa-solid fa-exclamation-triangle"></i><span>Incidents</span>`;
-            incidentsItem.onclick = () => openClass(state.classes[0].id, 'incidents');
+            incidentsItem.onclick = () => openClass(state.classes[0] ? state.classes[0].id : null, 'incidents');
             container.appendChild(incidentsItem);
         }
         
@@ -846,12 +864,13 @@
             content.innerHTML = `
                 <div class="breadcrumb"><i class="fa-solid fa-house"></i> Home</div>
                 <h1 class="page-title">Welcome back, ${state.currentUser.fullName}!</h1>
-                <div class="card"><h3>📅 Upcoming</h3><p>No deadlines today</p></div>
+                <div class="card"><h3>📅 Upcoming Deadlines</h3><p>No deadlines today</p></div>
                 <div class="card"><h3>Announcements</h3><p>${state.messages[0] ? state.messages[0].body : 'No announcements yet'}</p></div>
             `;
         }
         
         function openClass(classId, forcedSection = null) {
+            if (!classId) return;
             state.currentClassId = classId;
             const cls = state.classes.find(c => c.id === classId);
             const content = document.getElementById('dynamic-content');
@@ -884,7 +903,7 @@
             let html = '';
             
             if (section === 'overview') {
-                html = `<div class="card"><h3>Class Overview</h3><p>Teacher: ${state.users.find(u=>u.id===cls.teacherId).fullName}</p></div>`;
+                html = `<div class="card"><h3>Class Overview</h3><p>Teacher: ${state.users.find(u=>u.id===cls.teacherId).fullName}</p><p>Students: ${cls.enrolledStudents.length}</p></div>`;
             }
             
             else if (section === 'tasks') {
