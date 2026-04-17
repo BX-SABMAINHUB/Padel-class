@@ -515,6 +515,14 @@
                     </table>
                 </div>
                 
+                <!-- NEW: Enroll Students to Classes -->
+                <div class="card">
+                    <h3>Enroll Students to Classes</h3>
+                    <select id="enroll-class-select" class="form-input" style="margin-bottom:12px;"></select>
+                    <div id="enroll-students-list" style="max-height:200px; overflow-y:auto; border:1px solid #e5e9f0; border-radius:8px; padding:12px;"></div>
+                    <button onclick="enrollSelectedStudents()" class="btn-primary" style="margin-top:12px; width:100%;">Enroll Selected Students</button>
+                </div>
+                
                 <div class="card">
                     <h3>Schools &amp; Classes</h3>
                     <div id="super-schools-list"></div>
@@ -559,7 +567,7 @@
         </div>
     </div>
     
-    <!-- TASK DETAIL / SUBMISSION MODAL (NEW - used by students and teachers) -->
+    <!-- TASK DETAIL / SUBMISSION MODAL -->
     <div id="task-detail-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -620,10 +628,10 @@
             incidents: [],
             messages: [],
             grades: {},
-            submissions: {}, // NEW: key = "taskId-studentId" → { text: "", fileName: "", submittedDate: "" }
+            submissions: {}, // key = "taskId-studentId"
             currentClassId: null,
             currentSection: 'overview',
-            currentTaskId: null // for task detail modal
+            currentTaskId: null
         };
         
         const INITIAL_USERS = [
@@ -724,6 +732,7 @@
         }
         
         function renderSuperAdminContent() {
+            // Users table
             const tbody = document.querySelector('#super-users-table tbody');
             tbody.innerHTML = '';
             state.users.forEach(user => {
@@ -733,6 +742,18 @@
             });
             document.getElementById('user-count-badge').textContent = state.users.length;
             
+            // Enroll section
+            const classSelect = document.getElementById('enroll-class-select');
+            classSelect.innerHTML = '';
+            state.classes.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                classSelect.appendChild(opt);
+            });
+            renderEnrollStudentsList();
+            
+            // Schools list
             const schoolsContainer = document.getElementById('super-schools-list');
             schoolsContainer.innerHTML = '<h4>Schools &amp; Classes</h4>';
             state.schools.forEach(school => {
@@ -741,6 +762,35 @@
                 div.innerHTML = `<strong>${school.name}</strong> — ${state.classes.filter(c => c.schoolId === school.id).length} classes`;
                 schoolsContainer.appendChild(div);
             });
+        }
+        
+        function renderEnrollStudentsList() {
+            const container = document.getElementById('enroll-students-list');
+            container.innerHTML = '';
+            const students = state.users.filter(u => u.role === 'student');
+            students.forEach(student => {
+                const label = document.createElement('label');
+                label.style = 'display:block; margin:6px 0; font-size:14px;';
+                label.innerHTML = `<input type="checkbox" class="enroll-student-check" value="${student.id}"> ${student.fullName} (${student.username})`;
+                container.appendChild(label);
+            });
+            if (students.length === 0) container.innerHTML = '<small>No students yet. Create some first.</small>';
+        }
+        
+        function enrollSelectedStudents() {
+            const classId = parseInt(document.getElementById('enroll-class-select').value);
+            const checkboxes = document.querySelectorAll('.enroll-student-check:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            
+            const cls = state.classes.find(c => c.id === classId);
+            if (cls) {
+                selectedIds.forEach(id => {
+                    if (!cls.enrolledStudents.includes(id)) cls.enrolledStudents.push(id);
+                });
+                saveToLocalStorage();
+                showToast(`${selectedIds.length} students enrolled successfully`);
+                renderSuperAdminContent();
+            }
         }
         
         function createNewUser() {
@@ -928,11 +978,15 @@
                 state.tasks.filter(t => t.classId === cls.id).forEach(task => {
                     const isSubmitted = user.role === 'student' && state.submissions[`${task.id}-${user.id}`];
                     html += `
-                    <div class="card" style="cursor:pointer;" onclick="openTaskDetail(${task.id})">
-                        <strong>${task.title}</strong> 
-                        <span style="float:right; font-size:13px; background:#4a90d9; color:white; padding:2px 10px; border-radius:9999px;">${task.dueDate}</span>
-                        <br><small>${task.description.substring(0,80)}...</small>
-                        ${isSubmitted ? `<span style="color:#27ae60; font-size:13px;">✓ Submitted</span>` : ''}
+                    <div class="card" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="openTaskDetail(${task.id})">
+                        <div>
+                            <strong>${task.title}</strong><br>
+                            <small>Due: ${task.dueDate}</small>
+                        </div>
+                        <div>
+                            ${isSubmitted ? `<span style="color:#27ae60;">✓ Submitted</span>` : ''}
+                            ${isTeacherOrAdmin ? `<button onclick="deleteTask(${task.id}); event.stopImmediatePropagation();" style="background:#e74c3c;color:white;border:none;padding:4px 12px;border-radius:6px;font-size:13px;">Delete Task</button>` : ''}
+                        </div>
                     </div>`;
                 });
             }
@@ -942,7 +996,7 @@
                 if (isTeacherOrAdmin) {
                     html += `<button onclick="showCreateTaskModal(${cls.id})" class="btn-primary">+ New Task</button>`;
                 }
-                html += `<table><thead><tr><th>Student</th><th>Task</th><th>Grade</th></tr></thead><tbody>`;
+                html += `<table><thead><tr><th>Student</th><th>Task</th><th>Grade</th><th>Actions</th></tr></thead><tbody>`;
                 cls.enrolledStudents.forEach(sid => {
                     const student = state.users.find(u => u.id === sid);
                     state.tasks.filter(t => t.classId === cls.id).forEach(task => {
@@ -951,7 +1005,12 @@
                         const gradeCell = isTeacherOrAdmin 
                             ? `<td onclick="editGrade(${cls.id},${sid},${task.id}); event.stopImmediatePropagation();" style="cursor:pointer;">${g ? g.score : '—'}</td>` 
                             : `<td>${g ? g.score : '—'}</td>`;
-                        html += `<tr><td>${student.fullName}</td><td>${task.title}</td>${gradeCell}</tr>`;
+                        html += `<tr>
+                            <td>${student.fullName}</td>
+                            <td>${task.title}</td>
+                            ${gradeCell}
+                            <td>${isTeacherOrAdmin ? `<button onclick="editGrade(${cls.id},${sid},${task.id}); event.stopImmediatePropagation();" style="background:#4a90d9;color:white;border:none;padding:4px 12px;border-radius:6px;font-size:13px;">Edit</button>` : ''}</td>
+                        </tr>`;
                     });
                 });
                 html += `</tbody></table>`;
@@ -991,7 +1050,6 @@
             return html;
         }
         
-        // NEW: Open Task Detail Modal (for students to view + submit, for teachers to review)
         function openTaskDetail(taskId) {
             state.currentTaskId = taskId;
             const task = state.tasks.find(t => t.id === taskId);
@@ -1002,11 +1060,10 @@
                 <h3>${task.title}</h3>
                 <p><strong>Due:</strong> ${task.dueDate}</p>
                 <p><strong>Instructions:</strong> ${task.description}</p>
-                ${task.attachment ? `<p><strong>Teacher Attachment:</strong> <a href="#" onclick="alert('Downloading ${task.attachment} (demo)')">${task.attachment}</a></p>` : ''}
+                ${task.attachment ? `<p><strong>Teacher Attachment:</strong> <a href="#" onclick="downloadDemoFile('${task.attachment}')" style="color:#4a90d9;">📥 Download ${task.attachment}</a></p>` : ''}
             `;
             
             if (!isTeacherOrAdmin) {
-                // STUDENT VIEW
                 const subKey = `${taskId}-${user.id}`;
                 const submission = state.submissions[subKey];
                 
@@ -1025,7 +1082,6 @@
                     <button onclick="submitStudentWork(${taskId})" class="btn-primary" style="margin-top:20px; width:100%;">Submit to Teacher</button>
                 `;
             } else {
-                // TEACHER VIEW - show all submissions
                 bodyHTML += `<h4>Student Submissions</h4>`;
                 const cls = state.classes.find(c => c.id === state.currentClassId);
                 cls.enrolledStudents.forEach(sid => {
@@ -1054,6 +1110,10 @@
             document.getElementById('task-detail-modal').style.display = 'flex';
         }
         
+        function downloadDemoFile(filename) {
+            alert(`Downloading ${filename} (demo - in real app this would trigger a real download)`);
+        }
+        
         function submitStudentWork(taskId) {
             const text = document.getElementById('submit-text').value.trim();
             const fileInput = document.getElementById('submit-file');
@@ -1075,7 +1135,6 @@
             closeModal('task-detail-modal');
             showToast("Work submitted successfully! Teacher can now review it.");
             
-            // Refresh current class tasks view
             const cls = state.classes.find(c => c.id === state.currentClassId);
             if (cls) openClass(cls.id, 'tasks');
         }
@@ -1113,6 +1172,16 @@
             closeModal('create-task-modal');
             showToast("Task created with attachment");
             openClass(classId, 'tasks');
+        }
+        
+        function deleteTask(taskId) {
+            if (confirm("Delete this task permanently?")) {
+                state.tasks = state.tasks.filter(t => t.id !== taskId);
+                saveToLocalStorage();
+                showToast("Task deleted");
+                const cls = state.classes.find(c => c.id === state.currentClassId);
+                if (cls) openClass(cls.id, 'tasks');
+            }
         }
         
         function editGrade(classId, studentId, taskId) {
