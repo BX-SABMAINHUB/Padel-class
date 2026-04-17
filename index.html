@@ -732,7 +732,6 @@
         }
         
         function renderSuperAdminContent() {
-            // Users table
             const tbody = document.querySelector('#super-users-table tbody');
             tbody.innerHTML = '';
             state.users.forEach(user => {
@@ -742,7 +741,6 @@
             });
             document.getElementById('user-count-badge').textContent = state.users.length;
             
-            // Enroll section
             const classSelect = document.getElementById('enroll-class-select');
             classSelect.innerHTML = '';
             state.classes.forEach(c => {
@@ -753,7 +751,6 @@
             });
             renderEnrollStudentsList();
             
-            // Schools list
             const schoolsContainer = document.getElementById('super-schools-list');
             schoolsContainer.innerHTML = '<h4>Schools &amp; Classes</h4>';
             state.schools.forEach(school => {
@@ -1058,9 +1055,9 @@
             
             let bodyHTML = `
                 <h3>${task.title}</h3>
-                <p><strong>Due:</strong> ${task.dueDate}</p>
+                <p><strong>Due date:</strong> ${task.dueDate}</p>
                 <p><strong>Instructions:</strong> ${task.description}</p>
-                ${task.attachment ? `<p><strong>Teacher Attachment:</strong> <a href="#" onclick="downloadDemoFile('${task.attachment}')" style="color:#4a90d9;">📥 Download ${task.attachment}</a></p>` : ''}
+                ${task.attachment ? `<p><strong>Teacher's file:</strong> <a href="#" onclick="downloadDemoFile('${task.attachment}')" style="color:#4a90d9;">📥 Download ${task.attachment}</a></p>` : ''}
             `;
             
             if (!isTeacherOrAdmin) {
